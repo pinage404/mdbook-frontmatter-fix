@@ -19,4 +19,11 @@ mod tests {
     fn parse_set_returns_none_for_invalid_input() {
         assert!(parse_set("notavalidpair").is_none());
     }
+
+    #[test]
+    fn parse_set_allows_empty_value() {
+        let (key, value) = parse_set("title=").unwrap();
+        assert_eq!(key, "title");
+        assert_eq!(value, "");
+    }
 }
