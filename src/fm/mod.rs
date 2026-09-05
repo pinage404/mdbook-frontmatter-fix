@@ -104,6 +104,11 @@ pub fn fix_missing_tags(content: &str, tags: &[String]) -> String {
     };
     content.replacen("\n---", &format!("\n{tags_yaml}---"), 1)
 }
+
+#[must_use]
+pub fn fix_missing_lang(content: &str, lang: &str) -> String {
+    content.replacen("\n---", &format!("\nlang: {lang}\n---"), 1)
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -162,7 +167,7 @@ mod tests {
     fn fix_missing_frontmatter_prepends_block() {
         let content = "# Hello\n\nSome content.\n";
         let path = "blog/rust/my-post.md";
-        let tags = crate::tags::infer_tags(path);
+        let tags = infer_tags(path);
         let fm = Frontmatter {
             title: "Hello",
             author: "Jr",
