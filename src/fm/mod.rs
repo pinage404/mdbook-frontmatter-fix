@@ -15,13 +15,13 @@ pub fn check_frontmatter(content: &str) -> Vec<Diagnostic> {
     let inner = content.trim_start_matches("---").trim_start_matches('\n');
     if let Some(close) = inner.find("\n---") {
         let yaml = &inner[..close];
-        if !yaml.lines().any(|l| l.starts_with("date:")) {
+        if !has_field(yaml, "date") {
             diags.push(Diagnostic {
                 code: "fm::missing-date",
                 message: "frontmatter has no 'date' field".to_string(),
             })
         }
-        if !yaml.lines().any(|l| l.starts_with("author:")) {
+        if !has_field(yaml, "author") {
             diags.push(Diagnostic {
                 code: "fm::missing-author",
                 message: "frontmatter has no 'author' field".to_string(),
@@ -29,6 +29,11 @@ pub fn check_frontmatter(content: &str) -> Vec<Diagnostic> {
         }
     }
     diags
+}
+
+/// Does the frontmatter have `field`?
+fn has_field(yaml: &str, field: &str) -> bool {
+    yaml.lines().any(|l| l.starts_with(&format!("{field}:")))
 }
 
 #[cfg(test)]
