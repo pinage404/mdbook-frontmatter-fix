@@ -58,7 +58,7 @@ pub fn check_frontmatter(content: &str) -> Vec<Diagnostic> {
     }
     if !has_field(yaml, "lang") {
         diags.push(Diagnostic {
-            code: "fm::missing-title",
+            code: "fm::missing-lang",
             message: "frontmatter has no 'lang' field".to_string(),
         });
     }
@@ -136,5 +136,13 @@ mod tests {
         assert!(fixed.contains("author: Jr"));
         assert!(fixed.contains("date: 2026-09-03"));
         assert!(fixed.contains("# Hello"));
+    }
+
+    #[test]
+    fn missing_lang_produces_diagnostic() {
+        let content = "---\ntitle: Hello\nauthor: Jr\ndate: 2026-09-03\n---\n\nSome content.\n";
+        let diags = check_frontmatter(content);
+        assert_eq!(diags.len(), 1);
+        assert_eq!(diags[0].code, "fm::missing-lang");
     }
 }
