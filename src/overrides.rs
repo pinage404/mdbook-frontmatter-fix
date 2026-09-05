@@ -6,17 +6,25 @@ fn parse_set(s: &str) -> Option<(&str, &str)> {
 
 #[must_use]
 pub fn apply_override(content: &str, key: &str, value: &str) -> String {
-    content
+    let field_exists = content
         .lines()
-        .map(|line| {
-            if line.starts_with(&format!("{key}:")) {
-                format!("{key}: {value}")
-            } else {
-                line.to_string()
-            }
-        })
-        .collect::<Vec<_>>()
-        .join("\n")
+        .any(|line| line.starts_with(&format!("{key}:")));
+
+    if field_exists {
+        content
+            .lines()
+            .map(|line| {
+                if line.starts_with(&format!("{key}:")) {
+                    format!("{key}: {value}")
+                } else {
+                    line.to_string()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
+    } else {
+        content.replacen("\n---", &format!("\n{key}: {value}\n---"), 1)
+    }
 }
 
 #[cfg(test)]
