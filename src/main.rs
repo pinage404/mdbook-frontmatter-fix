@@ -20,6 +20,24 @@ struct Cli {
     fix: bool,
 }
 
+fn read_or_exit(path: &str) -> String {
+    fs::read_to_string(path).unwrap_or_else(|_| {
+        eprintln!("error: could not read {path}");
+        std::process::exit(1);
+    })
+}
+
+fn write_fixed(full_path: &str, content: String) {
+    match fs::write(full_path, content) {
+        Ok(()) => eprintln!("fixed: {full_path}"),
+        Err(e) => eprintln!("error: could not write {full_path}: {e}"),
+    }
+}
+
+fn has_diag(diags: &[fm::Diagnostic], code: &str) -> bool {
+    diags.iter().any(|d| d.code == code)
+}
+
 fn main() {
     let cli = Cli::parse();
 
@@ -28,19 +46,8 @@ fn main() {
         std::process::exit(1);
     }
 
-    let Ok(book_toml) = fs::read_to_string("book.toml") else {
-        eprintln!("error: could not read book.toml");
-        std::process::exit(1);
-    };
-
-    let lang = book::parse_language(&book_toml);
-
-    let Ok(summary) = fs::read_to_string("src/SUMMARY.md") else {
-        eprintln!("error: could not read src/SUMMARY.md");
-        std::process::exit(1);
-    };
-
-    let paths = summary::parse_summary(&summary);
+    let lang = book::parse_language(&read_or_exit("book.toml"));
+    let paths = summary::parse_summary(&read_or_exit("src/SUMMARY.md"));
 
     let run_fm = cli.fm || !cli.html;
     let run_html = cli.html || !cli.fm;
@@ -48,7 +55,6 @@ fn main() {
 
     for path in &paths {
         let full_path = format!("src/{path}");
-
         let Ok(content) = fs::read_to_string(&full_path) else {
             eprintln!("error: could not read {full_path}");
             continue;
@@ -70,57 +76,47 @@ fn main() {
             total += 1;
         }
 
-        if cli.fix && diags.iter().any(|d| d.code == "fm::missing-frontmatter") {
-            let abs_path = std::path::Path::new(&full_path).canonicalize().unwrap();
-            let commit = git::file_commit_info(&abs_path, "%Y-%m-%d", false)
-                .ok()
-                .flatten();
-
-            let title = path
-                .trim_end_matches(".md")
-                .split('/')
-                .next_back()
-                .unwrap_or("untitled");
-
-            let tags = tags::infer_tags(path);
-            let fm = Frontmatter {
-                title,
-                author: commit.as_ref().map_or("Unknown", |c| c.author.as_str()),
-                date: commit.as_ref().map_or("Unknown", |c| c.date.as_str()),
-                lang: &lang,
-                tags,
-            };
-
-            let fixed = fm::fix_frontmatter(&content, &fm);
-
-            match fs::write(&full_path, fixed) {
-                Ok(()) => eprintln!("fixed: {full_path}"),
-                Err(e) => eprintln!("error: could not write {full_path}: {e}"),
+        if cli.fix {
+            if has_diag(&diags, "fm::missing-frontmatter") {
+                let abs_path = Path::new(&full_path).canonicalize().unwrap();
+                let commit = git::file_commit_info(&abs_path, "%Y-%m-%d", false)
+                    .ok()
+                    .flatten();
+                let title = path
+                    .trim_end_matches(".md")
+                    .split('/')
+                    .next_back()
+                    .unwrap_or("untitled");
+                let fixed = fm::fix_frontmatter(
+                    &content,
+                    &Frontmatter {
+                        title,
+                        author: commit.as_ref().map_or("Unknown", |c| c.author.as_str()),
+                        date: commit.as_ref().map_or("Unknown", |c| c.date.as_str()),
+                        lang: &lang,
+                        tags: tags::infer_tags(path),
+                    },
+                );
+                write_fixed(&full_path, fixed);
             }
-        }
 
-        if cli.fix && diags.iter().any(|d| d.code == "fm::missing-lang") {
-            let fixed = fm::fix_missing_lang(&content, &lang);
-            match fs::write(&full_path, fixed) {
-                Ok(()) => eprintln!("fixed: {full_path}"),
-                Err(e) => eprintln!("error: could not write {full_path}: {e}"),
+            if has_diag(&diags, "fm::missing-lang") {
+                write_fixed(&full_path, fm::fix_missing_lang(&content, &lang));
             }
-        }
 
-        if cli.fix && diags.iter().any(|d| d.code == "fm::missing-tags") {
-            let content = fs::read_to_string(&full_path).unwrap_or_default();
-            let tags = tags::infer_tags(path);
-            let fixed = fm::fix_missing_tags(&content, &tags);
-            match fs::write(&full_path, fixed) {
-                Ok(()) => eprintln!("fixed tags: {full_path}"),
-                Err(e) => eprintln!("error: could not write {full_path}: {e}"),
+            if has_diag(&diags, "fm::missing-tags") {
+                let content = fs::read_to_string(&full_path).unwrap_or_default();
+                write_fixed(
+                    &full_path,
+                    fm::fix_missing_tags(&content, &tags::infer_tags(path)),
+                );
             }
         }
     }
     if total == 0 {
         println!("fmf: no issues found");
     } else {
-        eprintln!("\nfmf: {total} issus(s) found");
+        eprintln!("\nfmf: {total} issue(s) found");
         std::process::exit(1);
     }
 }
