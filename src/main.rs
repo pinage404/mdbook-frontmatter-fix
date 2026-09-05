@@ -81,7 +81,7 @@ fn main() {
             total += 1;
         }
 
-        if cli.fix {
+        if cli.fix || cli.dry_run {
             if has_diag(&diags, "fm::missing-frontmatter") {
                 let abs_path = Path::new(&full_path).canonicalize().unwrap();
                 let commit = git::file_commit_info(&abs_path, "%Y-%m-%d", false)
@@ -102,19 +102,31 @@ fn main() {
                         tags: tags::infer_tags(path),
                     },
                 );
-                write_fixed(&full_path, fixed);
+                if cli.dry_run {
+                    eprintln!("would fix: {full_path}\n{fixed}");
+                } else {
+                    write_fixed(&full_path, fixed);
+                }
             }
 
             if has_diag(&diags, "fm::missing-lang") {
-                write_fixed(&full_path, fm::fix_missing_lang(&content, &lang));
+                let fixed = fm::fix_missing_lang(&content, &lang);
+                if cli.dry_run {
+                    eprintln!("would fix: {full_path}\n{fixed}");
+                } else {
+                    write_fixed(&full_path, fixed);
+                }
             }
 
             if has_diag(&diags, "fm::missing-tags") {
                 let content = fs::read_to_string(&full_path).unwrap_or_default();
-                write_fixed(
-                    &full_path,
-                    fm::fix_missing_tags(&content, &tags::infer_tags(path)),
-                );
+
+                let fixed = fm::fix_missing_tags(&content, &tags::infer_tags(path));
+                if cli.dry_run {
+                    eprintln!("would fix: {full_path}\n{fixed}");
+                } else {
+                    write_fixed(&full_path, fixed);
+                }
             }
         }
     }
