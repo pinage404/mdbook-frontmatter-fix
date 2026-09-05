@@ -1,7 +1,7 @@
 use std::{fs, path::Path};
 
 use clap::Parser;
-use mdbook_frontmatter_fix::{book, fm, fm::Frontmatter, git, html};
+use mdbook_frontmatter_fix::{book, fm, fm::Frontmatter, git, html, overrides};
 use mdbook_frontmatter_fix::{summary, tags};
 
 #[allow(clippy::struct_excessive_bools)]
@@ -70,6 +70,34 @@ fn main() {
     let run_html = cli.html || !cli.fm;
     let mut total = 0;
 
+    if let Some(ref file) = cli.file {
+        let full_path = format!("src/{file}");
+        let Ok(content) = fs::read_to_string(&full_path) else {
+            eprintln!("error: could not read {full_path}");
+            std::process::exit(1);
+        };
+
+        let mut current = content;
+
+        for s in &cli.set {
+            if let Some((key, value)) = overrides::parse_set(s) {
+                current = overrides::apply_override(&current, key, value);
+            }
+        }
+
+        if !cli.tag.is_empty() {
+            let tags: Vec<String> = cli.tag.clone();
+            current = fm::fix_missing_tags(&current, &tags);
+        }
+
+        if cli.dry_run {
+            eprintln!("would write: {full_path}\n{current}");
+        } else {
+            write_fixed(&full_path, current);
+        }
+
+        return;
+    }
     for path in &paths {
         let full_path = format!("src/{path}");
         let Ok(content) = fs::read_to_string(&full_path) else {

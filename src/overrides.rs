@@ -1,5 +1,5 @@
 #[must_use]
-fn parse_set(s: &str) -> Option<(&str, &str)> {
+pub fn parse_set(s: &str) -> Option<(&str, &str)> {
     let (key, value) = s.split_once('=')?;
     Some((key, value))
 }
