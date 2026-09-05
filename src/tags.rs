@@ -1,11 +1,14 @@
+use std::string::{String, ToString};
+
 /// Given a path, return the path segments as a `Vec<String>`
+#[must_use]
 pub fn infer_tags(path: &str) -> Vec<String> {
     // split on `/`: `src/blog/rust/my-post.md` ->  ["blog", "rust", "my-post.md"]
     let segments: Vec<&str> = path.split('/').collect();
     // drop the filename: ["blog", "rust"]
     segments[..segments.len() - 1]
         .iter()
-        .map(|s| s.to_string())
+        .map(ToString::to_string)
         .collect()
 }
 
@@ -27,6 +30,6 @@ mod tests {
     #[test]
     fn root_level_file_returns_no_tags() {
         let tags = infer_tags("README.md");
-        assert!(tags.is_empty());
+        assert_eq!(tags, [] as [String; 0]);
     }
 }

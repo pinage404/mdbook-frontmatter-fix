@@ -1,8 +1,8 @@
 use std::{fs, path::Path};
 
 use clap::Parser;
-use mdbook_frontmatter_fix::summary;
 use mdbook_frontmatter_fix::{book, fm, fm::Frontmatter, git, html};
+use mdbook_frontmatter_fix::{summary, tags};
 
 #[derive(Parser)]
 #[command(name = "fmf", about = "mdBook frontmatter & content validator")]
@@ -83,11 +83,13 @@ fn main() {
                 .next_back()
                 .unwrap_or("untitled");
 
+            let tags = tags::infer_tags(path);
             let fm = Frontmatter {
                 title,
                 author: commit.as_ref().map_or("Unknown", |c| c.author.as_str()),
                 date: commit.as_ref().map_or("Unknown", |c| c.date.as_str()),
                 lang: &lang,
+                tags,
             };
 
             let fixed = fm::fix_frontmatter(&content, &fm);
