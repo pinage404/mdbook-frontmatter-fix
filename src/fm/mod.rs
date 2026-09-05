@@ -27,6 +27,12 @@ pub fn check_frontmatter(content: &str) -> Vec<Diagnostic> {
                 message: "frontmatter has no 'author' field".to_string(),
             })
         }
+        if !has_field(yaml, "title") {
+            diags.push(Diagnostic {
+                code: "fm::missing-title",
+                message: "frontmatter has no 'title' field".to_string(),
+            })
+        }
     }
     diags
 }
@@ -65,7 +71,7 @@ mod tests {
 
     #[test]
     fn missing_title_produces_diagnostic() {
-        let content = "---\ndate: 2026-09-03\n---\n\nSome content.\n";
+        let content = "---\nauthor: Jr\ndate: 2026-09-03\n---\n\nSome content.\n";
         let diags = check_frontmatter(content);
         assert_eq!(diags.len(), 1);
         assert_eq!(diags[0].code, "fm::missing-title");
