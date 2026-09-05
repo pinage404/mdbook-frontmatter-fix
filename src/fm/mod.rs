@@ -84,4 +84,12 @@ mod tests {
         let diags = check_frontmatter(content);
         assert!(diags.is_empty());
     }
+
+    #[test]
+    fn unclosed_fm_fence_produces_diagnostic() {
+        let content = "---\ntitle: Hello\nauthor: Jr\ndate:2026-09-03\n\nSome content\n";
+        let diags = check_frontmatter(content);
+        assert_eq!(diags.len(), 1);
+        assert_eq!(diags[0].code, "fm::unclosed-frontmatter");
+    }
 }
