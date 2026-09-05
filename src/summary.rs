@@ -9,8 +9,8 @@ pub fn parse_summary(content: &str) -> Vec<String> {
     let mut paths = Vec::new();
 
     for line in content.lines() {
-        if let Some(start) = line.find('(')
-            && let Some(end) = line.find(')')
+        if let Some(end) = line.rfind(')')
+            && let Some(start) = line[..end].rfind('(')
         {
             let path = &line[start + 1..end];
             if Path::new(path)
