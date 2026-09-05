@@ -71,6 +71,7 @@ fn main() {
     let mut total = 0;
 
     if let Some(ref file) = cli.file {
+        let file = file.trim_start_matches("src/");
         let full_path = format!("src/{file}");
         let Ok(content) = fs::read_to_string(&full_path) else {
             eprintln!("error: could not read {full_path}");
