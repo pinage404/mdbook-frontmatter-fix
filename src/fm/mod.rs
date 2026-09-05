@@ -26,4 +26,11 @@ mod tests {
         assert_eq!(diags.len(), 1);
         assert_eq!(diags[0].code, "fm::missing-frontmatter");
     }
+    #[test]
+    fn missing_date_produces_diagnostic() {
+        let content = "---\ntitle: Hello\nauthor: Jr\n---\n\nSome content.\n";
+        let diags = check_frontmatter(content);
+        assert_eq!(diags.len(), 1);
+        assert_eq!(diags[0].code, "fm::missing-date");
+    }
 }
