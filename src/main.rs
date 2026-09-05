@@ -1,9 +1,10 @@
-use std::path::Path;
+use std::{fs, path::Path};
 
 use clap::Parser;
+use mdbook_frontmatter_fix::summary;
 
 #[derive(Parser)]
-#[command(name = "mf", about = "mdBook frontmatter & content validator")]
+#[command(name = "fmf", about = "mdBook frontmatter & content validator")]
 struct Cli {
     /// Check frontmatter fields only
     #[arg(long)]
@@ -24,6 +25,18 @@ fn main() {
 
     let run_fm = cli.fm || !cli.html;
     let run_html = cli.html || !cli.fm;
+
+    let summary = fs::read_to_string("src/SUMMARY.md").unwrap_or_else(|_| {
+        eprintln!("error: could not read src/SUMMARY.md");
+        std::process::exit(1);
+    });
+
+    let paths = summary::parse_summary(&summary);
+
+    println!("found {} chapters", paths.len());
+    for path in &paths {
+        println!("  {path}");
+    }
 
     println!("fm: {run_fm}, html: {run_html}");
 }
