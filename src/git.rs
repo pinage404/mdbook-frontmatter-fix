@@ -22,6 +22,11 @@ pub struct FileCommitInfo {
 /// - `date_format`: `strftime`-style format string, e.g. `"%Y-%m-%d"`.
 /// - `use_first_commit`: When `true`, returns the file's *first* commit
 ///   instead of the latest.
+///
+/// # Errors
+///
+/// Returns `Err` if the git subprocess fails to spawn or exits with a
+/// non-zero status. Returns `Ok(None)` if the file has no commit history.
 pub fn file_commit_info(
     abs_path: &Path,
     date_format: &str,
@@ -90,7 +95,7 @@ pub fn file_commit_info(
 mod tests {
     use super::*;
 
-    /// Smoke test: querying a non-existent file should return a GitFailure or
+    /// Smoke test: querying a non-existent file should return a `GitFailure` or
     /// Ok(None), never panic.
     #[test]
     fn missing_file_does_not_panic() {

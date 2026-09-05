@@ -2,7 +2,7 @@ use std::{fs, path::Path};
 
 use clap::Parser;
 use mdbook_frontmatter_fix::summary;
-use mdbook_frontmatter_fix::{fm, html};
+use mdbook_frontmatter_fix::{fm, fm::Frontmatter, git, html};
 
 #[derive(Parser)]
 #[command(name = "fmf", about = "mdBook frontmatter & content validator")]
@@ -14,6 +14,10 @@ struct Cli {
     /// Check HTML structure only
     #[arg(long)]
     html: bool,
+
+    /// Automatically fix issues where possible
+    #[arg(long)]
+    fix: bool,
 }
 
 fn main() {
@@ -24,14 +28,14 @@ fn main() {
         std::process::exit(1);
     }
 
-    let summary = fs::read_to_string("src/SUMMARY.md").unwrap_or_else(|_| {
-        eprintln!("error: could not read src/SUMMARY.md");
-        std::process::exit(1);
-    });
-
     let run_fm = cli.fm || !cli.html;
     let run_html = cli.html || !cli.fm;
     let mut total = 0;
+
+    let Ok(summary) = fs::read_to_string("src/SUMMARY.md") else {
+        eprintln!("error: could not read src/SUMMARY.md");
+        std::process::exit(1);
+    };
 
     let paths = summary::parse_summary(&summary);
 
@@ -58,6 +62,31 @@ fn main() {
                 diag.code, diag.message, path
             );
             total += 1;
+        }
+
+        if cli.fix && diags.iter().any(|d| d.code == "fm::missing-frontmatter") {
+            let abs_path = std::path::Path::new(&full_path).canonicalize().unwrap();
+            let commit = git::file_commit_info(&abs_path, "%Y-%m-%d", false)
+                .ok()
+                .flatten();
+
+            let title = path
+                .trim_end_matches(".md")
+                .split('/')
+                .next_back()
+                .unwrap_or("untitled");
+
+            let fm = Frontmatter {
+                title,
+                author: commit.as_ref().map_or("Unknown", |c| c.author.as_str()),
+                date: commit.as_ref().map_or("Unknown", |c| c.date.as_str()),
+            };
+
+            let fixed = fm::fix_frontmatter(&content, &fm);
+            match fs::write(&full_path, fixed) {
+                Ok(()) => eprintln!("fixed: {full_path}"),
+                Err(e) => eprintln!("error: could not write {full_path}: {e}"),
+            }
         }
     }
     if total == 0 {
