@@ -28,4 +28,11 @@ mod tests {
         let paths = parse_summary(content);
         assert_eq!(paths, vec!["README.md", "chapter_one.md"]);
     }
+
+    #[test]
+    fn parses_chapter_paths_with_dot_slash_prefix() {
+        let content = "# Summary\n\n- [Chapter One](./io/input_output.md)\n";
+        let paths = parse_summary(content);
+        assert_eq!(paths, vec!["io/input_output.md"]);
+    }
 }
