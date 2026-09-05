@@ -1,3 +1,23 @@
+/// Iterate over each line of `SUMMARY.md` as a `&str`
+/// Find every `(something.md)` and return whats inside
+/// `- [Intro](README.md)` -> `README.md`
+/// Filters out section headers like `- [Part One]()`
+pub fn parse_summary(content: &str) -> Vec<String> {
+    let mut paths = Vec::new();
+
+    for line in content.lines() {
+        if let Some(start) = line.find('(')
+            && let Some(end) = line.find(')')
+        {
+            let path = &line[start + 1..end];
+            if path.ends_with(".md") {
+                paths.push(path.to_string());
+            }
+        }
+    }
+    paths
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
