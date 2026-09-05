@@ -11,6 +11,7 @@ pub fn parse_summary(content: &str) -> Vec<String> {
         {
             let path = &line[start + 1..end];
             if path.ends_with(".md") {
+                let path = path.trim_start_matches("./");
                 paths.push(path.to_string());
             }
         }
