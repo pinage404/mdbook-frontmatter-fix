@@ -4,6 +4,21 @@ fn parse_set(s: &str) -> Option<(&str, &str)> {
     Some((key, value))
 }
 
+#[must_use]
+pub fn apply_override(content: &str, key: &str, value: &str) -> String {
+    content
+        .lines()
+        .map(|line| {
+            if line.starts_with(&format!("{key}:")) {
+                format!("{key}: {value}")
+            } else {
+                line.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
