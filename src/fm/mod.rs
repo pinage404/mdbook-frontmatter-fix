@@ -182,4 +182,17 @@ mod tests {
         assert_eq!(diags.len(), 1);
         assert_eq!(diags[0].code, "fm::missing-tags");
     }
+
+    #[test]
+    fn fix_missing_tags_injects_into_existing_frontmatter() {
+        let content =
+            "---\ntitle: Hello\nauthor: Jr\ndate: 2026-09-03\nlang: en\n---\n\nSome content.\n";
+        let tags = vec!["blog".to_string(), "rust".to_string()];
+        let fixed = fix_missing_tags(content, &tags);
+        assert!(fixed.contains("tags:"));
+        assert!(fixed.contains("  - blog"));
+        assert!(fixed.contains("  - rust"));
+        let diags = check_frontmatter(&fixed);
+        assert!(diags.is_empty());
+    }
 }
