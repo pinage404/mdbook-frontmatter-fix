@@ -36,4 +36,11 @@ mod tests {
         let paths = parse_summary(content);
         assert_eq!(paths, vec!["io/input_output.md"]);
     }
+
+    #[test]
+    fn skips_section_headers_with_no_path() {
+        let content = "# Summary\n\n# Error Handling\n- [Chapter](chapter.md)\n";
+        let paths = parse_summary(content);
+        assert_eq!(paths, vec!["chapter.md"]);
+    }
 }
