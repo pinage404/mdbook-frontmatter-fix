@@ -14,26 +14,31 @@ pub fn check_frontmatter(content: &str) -> Vec<Diagnostic> {
     let mut diags = Vec::new();
 
     let inner = content.trim_start_matches("---").trim_start_matches('\n');
-    if let Some(close) = inner.find("\n---") {
-        let yaml = &inner[..close];
-        if !has_field(yaml, "date") {
-            diags.push(Diagnostic {
-                code: "fm::missing-date",
-                message: "frontmatter has no 'date' field".to_string(),
-            });
-        }
-        if !has_field(yaml, "author") {
-            diags.push(Diagnostic {
-                code: "fm::missing-author",
-                message: "frontmatter has no 'author' field".to_string(),
-            });
-        }
-        if !has_field(yaml, "title") {
-            diags.push(Diagnostic {
-                code: "fm::missing-title",
-                message: "frontmatter has no 'title' field".to_string(),
-            });
-        }
+
+    let Some(close) = inner.find("\n---") else {
+        return vec![Diagnostic {
+            code: "fm::unclosed-frontmatter",
+            message: "unclosed YAML frontmatter fence".to_string(),
+        }];
+    };
+    let yaml = &inner[..close];
+    if !has_field(yaml, "date") {
+        diags.push(Diagnostic {
+            code: "fm::missing-date",
+            message: "frontmatter has no 'date' field".to_string(),
+        });
+    }
+    if !has_field(yaml, "author") {
+        diags.push(Diagnostic {
+            code: "fm::missing-author",
+            message: "frontmatter has no 'author' field".to_string(),
+        });
+    }
+    if !has_field(yaml, "title") {
+        diags.push(Diagnostic {
+            code: "fm::missing-title",
+            message: "frontmatter has no 'title' field".to_string(),
+        });
     }
     diags
 }
