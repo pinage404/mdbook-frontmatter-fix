@@ -29,10 +29,18 @@
 - *(fm)* Implement fix_missing_lang
 - Add CHANGELOG with git-cliff
 - *(main)* Wire in fix_missing_lang & fix_missing_tags
+- *(lib)* Implement run_on_chapter with dry-run support
+- *(main)* Wire --dry-run flag to preview fixes without writing to disk
+- *(overrides)* Implement parse_set to parse key=value pairs & pass test
+- *(main)* Add set tag and file fields to Cli struct
+- *(overrides)* Implement apply_override to override fm values
+- *(overrides)* Add missing field when applying override
+- *(main)* Wire in --set --tag to main. When a --file is specified along with --set or --tag, apply the overrides to that file directly without running all checks
 
 ### 🐛 Bug Fixes
 
 - *(summary)* Use rfind in parse_summary to correctly parse chapter paths containing parentheses/backticks in title
+- *(main)* Trim src/ from file path matches
 
 ### 🚜 Refactor
 
@@ -40,6 +48,7 @@
 - *(html)* Create check_tag_balance helper to reduce replication
 - *(main)* Reorganize main
 - *(main)* Break down main into helper functions
+- *(lib)* Extract run_on_chapter for testable dry-run support
 
 ### 🧪 Testing
 
@@ -58,6 +67,11 @@
 - *(book)* Missing lang defaults to en
 - Add test for parsing tags from paths in SUMMARY.md
 - *(fm)* Add test for tag injection
+- *(overrides)* Parse key-value pair test
+- *(overrides)* Verify parse_set returns None for input without =
+- *(overrides)* Verify parse_set handles empty value and missing delimiter
+- *(overrides)* Verify key=value overrides are parsed into a hashmap
+- *(overrides)* If the field isn't found inject it
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -66,3 +80,6 @@
 - Copy git and error modules from mdbook-frontmatter-inject
 - Add book module scaffold
 - Fix clippy lints
+- Regenerate CHANGELOG
+- Add overrides module scaffold
+- Add README
