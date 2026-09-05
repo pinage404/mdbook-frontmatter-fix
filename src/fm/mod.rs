@@ -75,6 +75,12 @@ pub fn check_frontmatter(content: &str) -> Vec<Diagnostic> {
             message: "frontmatter has no 'lang' field".to_string(),
         });
     }
+    if !has_field(yaml, "tags") {
+        diags.push(Diagnostic {
+            code: "fm::missing-tags",
+            message: "frontmatter has no 'tags' field".to_string(),
+        });
+    }
     diags
 }
 
@@ -86,6 +92,7 @@ fn has_field(yaml: &str, field: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tags::infer_tags;
 
     #[test]
     fn missing_frontmatter_produces_diagnostic() {
@@ -96,7 +103,8 @@ mod tests {
     }
     #[test]
     fn missing_date_produces_diagnostic() {
-        let content = "---\ntitle: Hello\nauthor: Jr\nlang: en\n---\n\nSome content.\n";
+        let content =
+            "---\ntitle: Hello\nauthor: Jr\nlang: en\ntags:\n -blog\n---\n\nSome content.\n";
         let diags = check_frontmatter(content);
         assert_eq!(diags.len(), 1);
         assert_eq!(diags[0].code, "fm::missing-date");
@@ -104,7 +112,8 @@ mod tests {
 
     #[test]
     fn missing_author_produces_diagnostic() {
-        let content = "---\ntitle: Hello\ndate: 2026-09-03\nlang: en\n---\n\nSome content.\n";
+        let content =
+            "---\ntitle: Hello\ndate: 2026-09-03\nlang: en\ntags:\n -blog\n---\n\nSome content.\n";
         let diags = check_frontmatter(content);
         assert_eq!(diags.len(), 1);
         assert_eq!(diags[0].code, "fm::missing-author");
@@ -112,7 +121,8 @@ mod tests {
 
     #[test]
     fn missing_title_produces_diagnostic() {
-        let content = "---\nauthor: Jr\ndate: 2026-09-03\nlang: en\n---\n\nSome content.\n";
+        let content =
+            "---\nauthor: Jr\ndate: 2026-09-03\nlang: en\ntags:\n -blog\n---\n\nSome content.\n";
         let diags = check_frontmatter(content);
         assert_eq!(diags.len(), 1);
         assert_eq!(diags[0].code, "fm::missing-title");
@@ -120,15 +130,14 @@ mod tests {
 
     #[test]
     fn valid_frontmatter_produces_no_diagnostics() {
-        let content =
-            "---\ntitle: Hello\nauthor: Jr\ndate: 2026-09-03\nlang: en\n---\n\nSome content.\n";
+        let content = "---\ntitle: Hello\nauthor: Jr\ndate: 2026-09-03\nlang: en\ntags:\n -blog\n---\n\nSome content.\n";
         let diags = check_frontmatter(content);
         assert!(diags.is_empty());
     }
 
     #[test]
     fn unclosed_fm_fence_produces_diagnostic() {
-        let content = "---\ntitle: Hello\nauthor: Jr\ndate:2026-09-03\nlang: en\n\nSome content\n";
+        let content = "---\ntitle: Hello\nauthor: Jr\ndate:2026-09-03\nlang: en\ntags:\n -blog\n\nSome content\n";
         let diags = check_frontmatter(content);
         assert_eq!(diags.len(), 1);
         assert_eq!(diags[0].code, "fm::unclosed-frontmatter");
@@ -159,9 +168,18 @@ mod tests {
 
     #[test]
     fn missing_lang_produces_diagnostic() {
-        let content = "---\ntitle: Hello\nauthor: Jr\ndate: 2026-09-03\n---\n\nSome content.\n";
+        let content = "---\ntitle: Hello\nauthor: Jr\ndate: 2026-09-03\ntags:\n -blog\n---\n\nSome content.\n";
         let diags = check_frontmatter(content);
         assert_eq!(diags.len(), 1);
         assert_eq!(diags[0].code, "fm::missing-lang");
+    }
+
+    #[test]
+    fn missing_tags_produces_diagnostic() {
+        let content =
+            "---\ntitle: Hello\nauthor: Jr\ndate: 2026-09-03\nlang: en\n---\n\nSome content.\n";
+        let diags = check_frontmatter(content);
+        assert_eq!(diags.len(), 1);
+        assert_eq!(diags[0].code, "fm::missing-tags");
     }
 }
