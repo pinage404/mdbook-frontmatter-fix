@@ -4,11 +4,12 @@ pub struct Diagnostic {
 }
 
 pub struct Frontmatter<'a> {
-    title: &'a str,
-    author: &'a str,
-    date: &'a str,
+    pub title: &'a str,
+    pub author: &'a str,
+    pub date: &'a str,
 }
 
+#[must_use]
 pub fn fix_frontmatter(content: &str, fm: &Frontmatter<'_>) -> String {
     let block = format!(
         "---\ntitle: {}\nauthor: {}\ndate: {}\n---\n",
