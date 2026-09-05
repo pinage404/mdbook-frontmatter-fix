@@ -2,25 +2,31 @@ use crate::fm::Diagnostic;
 
 pub fn check_html(content: &str) -> Vec<Diagnostic> {
     let mut diags = Vec::new();
+    diags.extend(check_tag_balance(
+        content,
+        "details",
+        "html::unclosed-details",
+    ));
+    diags.extend(check_tag_balance(
+        content,
+        "summary",
+        "html::unclosed-summary",
+    ));
+    diags
+}
 
-    let opens = content.matches("<details>").count();
-    let closes = content.matches("</details>").count();
-    let open = content.matches("<summary>").count();
-    let close = content.matches("</summary>").count();
+fn check_tag_balance(content: &str, tag: &str, code: &'static str) -> Option<Diagnostic> {
+    let opens = content.matches(&format!("<{tag}>")).count();
+    let closes = content.matches(&format!("</{tag}>")).count();
 
-    if opens != closes {
-        diags.push(Diagnostic {
-            code: "html::unclosed-details",
-            message: "unclosed <details> block".to_string(),
-        });
-    }
-    if open != close {
-        diags.push(Diagnostic {
-            code: "html::unclosed-summary",
-            message: "unclosed <summary> block".to_string(),
+    if opens == closes {
+        None
+    } else {
+        Some(Diagnostic {
+            code,
+            message: format!("unclosed <{tag}> block"),
         })
     }
-    diags
 }
 
 #[cfg(test)]
