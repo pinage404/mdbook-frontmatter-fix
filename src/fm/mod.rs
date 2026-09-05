@@ -4,15 +4,25 @@ pub struct Diagnostic {
 }
 
 pub fn check_frontmatter(content: &str) -> Vec<Diagnostic> {
-    let has_frontmatter = content.starts_with("---");
-
-    if !has_frontmatter {
+    if !content.starts_with("---") {
         return vec![Diagnostic {
             code: "fm::missing-frontmatter",
             message: "chapter has no frontmatter".to_string(),
         }];
     }
-    vec![]
+    let mut diags = Vec::new();
+
+    let inner = content.trim_start_matches("---").trim_start_matches('\n');
+    if let Some(close) = inner.find("\n---") {
+        let yaml = &inner[..close];
+        if !yaml.lines().any(|l| l.starts_with("date:")) {
+            diags.push(Diagnostic {
+                code: "fm::missing-date",
+                message: "frontmatter has no 'date' field".to_string(),
+            })
+        }
+    }
+    diags
 }
 
 #[cfg(test)]
