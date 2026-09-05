@@ -97,4 +97,15 @@ mod tests {
         assert_eq!(diags.len(), 1);
         assert_eq!(diags[0].code, "fm::unclosed-frontmatter");
     }
+
+    #[test]
+    fn fix_missing_frontmatter_prepends_block() {
+        let content = "# Hello\n\nSome content.\n";
+        let fixed = fix_frontmatter(content, "Hello", "Jr", "2026-09-03");
+        assert!(fixed.starts_with("---\n"));
+        assert!(fixed.contains("title: Hello"));
+        assert!(fixed.contains("author: Jr"));
+        assert!(fixed.contains("date: 2026-09-03"));
+        assert!(fixed.contains("# Hello"));
+    }
 }
