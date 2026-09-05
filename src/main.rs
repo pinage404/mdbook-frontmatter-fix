@@ -18,6 +18,10 @@ struct Cli {
     /// Automatically fix issues where possible
     #[arg(long)]
     fix: bool,
+
+    /// Show what would be fixed without writing to disk
+    #[arg(long)]
+    dry_run: bool,
 }
 
 fn read_or_exit(path: &str) -> String {
