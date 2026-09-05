@@ -2,7 +2,7 @@ use std::{fs, path::Path};
 
 use clap::Parser;
 use mdbook_frontmatter_fix::summary;
-use mdbook_frontmatter_fix::{fm, fm::Frontmatter, git, html};
+use mdbook_frontmatter_fix::{book, fm, fm::Frontmatter, git, html};
 
 #[derive(Parser)]
 #[command(name = "fmf", about = "mdBook frontmatter & content validator")]
@@ -28,9 +28,16 @@ fn main() {
         std::process::exit(1);
     }
 
+    let Ok(book_toml) = fs::read_to_string("book.toml") else {
+        eprintln!("error: could not read book.toml");
+        std::process::exit(1);
+    };
+
     let run_fm = cli.fm || !cli.html;
     let run_html = cli.html || !cli.fm;
     let mut total = 0;
+
+    let lang = book::parse_language(&book_toml);
 
     let Ok(summary) = fs::read_to_string("src/SUMMARY.md") else {
         eprintln!("error: could not read src/SUMMARY.md");
@@ -80,6 +87,7 @@ fn main() {
                 title,
                 author: commit.as_ref().map_or("Unknown", |c| c.author.as_str()),
                 date: commit.as_ref().map_or("Unknown", |c| c.date.as_str()),
+                lang: &lang,
             };
 
             let fixed = fm::fix_frontmatter(&content, &fm);

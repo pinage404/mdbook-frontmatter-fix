@@ -7,6 +7,7 @@ pub struct Frontmatter<'a> {
     pub title: &'a str,
     pub author: &'a str,
     pub date: &'a str,
+    pub lang: &'a str,
 }
 
 #[must_use]
@@ -120,6 +121,7 @@ mod tests {
             title: "Hello",
             author: "Jr",
             date: "2026-09-03",
+            lang: "en",
         };
         let fixed = fix_frontmatter(content, &fm);
         assert!(fixed.starts_with("---\n"));
