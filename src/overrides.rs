@@ -62,4 +62,12 @@ mod tests {
         assert!(result.contains("title: New Title"));
         assert!(!result.contains("title: Old Title"));
     }
+
+    #[test]
+    fn apply_override_adds_missing_field() {
+        let content =
+            "---\ntitle: Hello\nauthor: Tom\ndate: 2026-09-03\nlang: en\n---\n\nContent.\n";
+        let result = apply_override(content, "description", "My description");
+        assert!(result.contains("description: My description"));
+    }
 }
