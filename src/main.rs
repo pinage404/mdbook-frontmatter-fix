@@ -23,6 +23,18 @@ struct Cli {
     /// Show what would be fixed without writing to disk
     #[arg(long)]
     dry_run: bool,
+
+    /// Override a frontmatter field (e.g. --set title="My Title")
+    #[arg(long, value_name = "KEY=VALUE")]
+    set: Vec<String>,
+
+    /// Add a tag to a specific file
+    #[arg(long, value_name = "TAG")]
+    tag: Vec<String>,
+
+    /// Target file for --set and --tag overrides
+    #[arg(value_name = "FILE")]
+    file: Option<String>,
 }
 
 fn read_or_exit(path: &str) -> String {
