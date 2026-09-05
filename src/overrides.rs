@@ -14,4 +14,9 @@ mod tests {
         assert_eq!(key, "title");
         assert_eq!(value, "My Title");
     }
+
+    #[test]
+    fn parse_set_returns_none_for_invalid_input() {
+        assert!(parse_set("notavalidpair").is_none());
+    }
 }
