@@ -49,4 +49,12 @@ mod tests {
         let paths = parse_summary(content);
         assert_eq!(paths, vec!["chapter.md"]);
     }
+
+    #[test]
+    fn parses_chapter_with_backticks_in_title() {
+        let content =
+            "- [Command-Line Arguments `std::io::args()`](./io/command_line_arguments.md)\n";
+        let paths = parse_summary(content);
+        assert_eq!(paths, vec!["io/command_line_arguments.md"]);
+    }
 }
