@@ -14,7 +14,7 @@ pub struct Frontmatter<'a> {
 #[must_use]
 pub fn fix_frontmatter(content: &str, fm: &Frontmatter<'_>) -> String {
     let tags = if fm.tags.is_empty() {
-        String::new()
+        "tags: []\n".to_string()
     } else {
         format!(
             "tags:\n{}\n",

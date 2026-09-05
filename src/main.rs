@@ -92,8 +92,27 @@ fn main() {
             };
 
             let fixed = fm::fix_frontmatter(&content, &fm);
+
             match fs::write(&full_path, fixed) {
                 Ok(()) => eprintln!("fixed: {full_path}"),
+                Err(e) => eprintln!("error: could not write {full_path}: {e}"),
+            }
+        }
+
+        if cli.fix && diags.iter().any(|d| d.code == "fm::missing-lang") {
+            let fixed = fm::fix_missing_lang(&content, &lang);
+            match fs::write(&full_path, fixed) {
+                Ok(()) => eprintln!("fixed: {full_path}"),
+                Err(e) => eprintln!("error: could not write {full_path}: {e}"),
+            }
+        }
+
+        if cli.fix && diags.iter().any(|d| d.code == "fm::missing-tags") {
+            let content = fs::read_to_string(&full_path).unwrap_or_default();
+            let tags = tags::infer_tags(path);
+            let fixed = fm::fix_missing_tags(&content, &tags);
+            match fs::write(&full_path, fixed) {
+                Ok(()) => eprintln!("fixed tags: {full_path}"),
                 Err(e) => eprintln!("error: could not write {full_path}: {e}"),
             }
         }
