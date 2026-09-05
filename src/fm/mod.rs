@@ -3,6 +3,7 @@ pub struct Diagnostic {
     pub message: String,
 }
 
+#[must_use]
 pub fn check_frontmatter(content: &str) -> Vec<Diagnostic> {
     if !content.starts_with("---") {
         return vec![Diagnostic {
@@ -19,19 +20,19 @@ pub fn check_frontmatter(content: &str) -> Vec<Diagnostic> {
             diags.push(Diagnostic {
                 code: "fm::missing-date",
                 message: "frontmatter has no 'date' field".to_string(),
-            })
+            });
         }
         if !has_field(yaml, "author") {
             diags.push(Diagnostic {
                 code: "fm::missing-author",
                 message: "frontmatter has no 'author' field".to_string(),
-            })
+            });
         }
         if !has_field(yaml, "title") {
             diags.push(Diagnostic {
                 code: "fm::missing-title",
                 message: "frontmatter has no 'title' field".to_string(),
-            })
+            });
         }
     }
     diags

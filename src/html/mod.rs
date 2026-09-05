@@ -1,5 +1,6 @@
 use crate::fm::Diagnostic;
 
+#[must_use]
 pub fn check_html(content: &str) -> Vec<Diagnostic> {
     let mut diags = Vec::new();
     diags.extend(check_tag_balance(
