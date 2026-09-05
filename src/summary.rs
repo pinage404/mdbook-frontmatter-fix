@@ -1,7 +1,10 @@
+use std::path::Path;
+
 /// Iterate over each line of `SUMMARY.md` as a `&str`
 /// Find every `(something.md)` and return whats inside
 /// `- [Intro](README.md)` -> `README.md`
 /// Filters out section headers like `- [Part One]()`
+#[must_use]
 pub fn parse_summary(content: &str) -> Vec<String> {
     let mut paths = Vec::new();
 
@@ -10,7 +13,10 @@ pub fn parse_summary(content: &str) -> Vec<String> {
             && let Some(end) = line.find(')')
         {
             let path = &line[start + 1..end];
-            if path.ends_with(".md") {
+            if Path::new(path)
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("md"))
+            {
                 let path = path.trim_start_matches("./");
                 paths.push(path.to_string());
             }
