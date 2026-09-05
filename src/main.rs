@@ -4,6 +4,7 @@ use clap::Parser;
 use mdbook_frontmatter_fix::{book, fm, fm::Frontmatter, git, html};
 use mdbook_frontmatter_fix::{summary, tags};
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Parser)]
 #[command(name = "fmf", about = "mdBook frontmatter & content validator")]
 struct Cli {
