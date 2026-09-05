@@ -33,10 +33,6 @@ fn main() {
         std::process::exit(1);
     };
 
-    let run_fm = cli.fm || !cli.html;
-    let run_html = cli.html || !cli.fm;
-    let mut total = 0;
-
     let lang = book::parse_language(&book_toml);
 
     let Ok(summary) = fs::read_to_string("src/SUMMARY.md") else {
@@ -46,7 +42,10 @@ fn main() {
 
     let paths = summary::parse_summary(&summary);
 
-    println!("found {} chapters", paths.len());
+    let run_fm = cli.fm || !cli.html;
+    let run_html = cli.html || !cli.fm;
+    let mut total = 0;
+
     for path in &paths {
         let full_path = format!("src/{path}");
 
