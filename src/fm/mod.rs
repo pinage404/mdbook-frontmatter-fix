@@ -89,6 +89,21 @@ fn has_field(yaml: &str, field: &str) -> bool {
     yaml.lines().any(|l| l.starts_with(&format!("{field}:")))
 }
 
+#[must_use]
+pub fn fix_missing_tags(content: &str, tags: &[String]) -> String {
+    let tags_yaml = if tags.is_empty() {
+        "tags: []\n".to_string()
+    } else {
+        format!(
+            "tags:\n{}\n",
+            tags.iter()
+                .map(|t| format!("  - {t}"))
+                .collect::<Vec<_>>()
+                .join("\n")
+        )
+    };
+    content.replacen("\n---", &format!("\n{tags_yaml}---"), 1)
+}
 #[cfg(test)]
 mod tests {
     use super::*;
