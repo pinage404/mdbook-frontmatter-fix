@@ -3,6 +3,20 @@ pub struct Diagnostic {
     pub message: String,
 }
 
+pub struct Frontmatter<'a> {
+    title: &'a str,
+    author: &'a str,
+    date: &'a str,
+}
+
+pub fn fix_frontmatter(content: &str, fm: &Frontmatter<'_>) -> String {
+    let block = format!(
+        "---\ntitle: {}\nauthor: {}\ndate: {}\n---\n",
+        fm.title, fm.author, fm.date
+    );
+    format!("{block}\n{content}")
+}
+
 #[must_use]
 pub fn check_frontmatter(content: &str) -> Vec<Diagnostic> {
     if !content.starts_with("---") {
@@ -101,7 +115,12 @@ mod tests {
     #[test]
     fn fix_missing_frontmatter_prepends_block() {
         let content = "# Hello\n\nSome content.\n";
-        let fixed = fix_frontmatter(content, "Hello", "Jr", "2026-09-03");
+        let fm = Frontmatter {
+            title: "Hello",
+            author: "Jr",
+            date: "2026-09-03",
+        };
+        let fixed = fix_frontmatter(content, &fm);
         assert!(fixed.starts_with("---\n"));
         assert!(fixed.contains("title: Hello"));
         assert!(fixed.contains("author: Jr"));
