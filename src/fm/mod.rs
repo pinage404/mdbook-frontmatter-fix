@@ -21,6 +21,12 @@ pub fn check_frontmatter(content: &str) -> Vec<Diagnostic> {
                 message: "frontmatter has no 'date' field".to_string(),
             })
         }
+        if !yaml.lines().any(|l| l.starts_with("author:")) {
+            diags.push(Diagnostic {
+                code: "fm::missing-author",
+                message: "frontmatter has no 'author' field".to_string(),
+            })
+        }
     }
     diags
 }
