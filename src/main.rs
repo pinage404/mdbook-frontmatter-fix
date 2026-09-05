@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use clap::Parser;
 
 #[derive(Parser)]
@@ -14,6 +16,11 @@ struct Cli {
 
 fn main() {
     let cli = Cli::parse();
+
+    if !Path::new("book.toml").exists() {
+        eprintln!("error: no book.toml found. Run mf from your book root");
+        std::process::exit(1);
+    }
 
     let run_fm = cli.fm || !cli.html;
     let run_html = cli.html || !cli.fm;
