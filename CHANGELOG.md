@@ -27,6 +27,8 @@
 - *(fm)* Add check for missing tags & test
 - *(fm)* Add fix_missing_tags function to pass test
 - *(fm)* Implement fix_missing_lang
+- Add CHANGELOG with git-cliff
+- *(main)* Wire in fix_missing_lang & fix_missing_tags
 
 ### 🐛 Bug Fixes
 
@@ -37,6 +39,7 @@
 - Create has_field helper function to reduce repetition
 - *(html)* Create check_tag_balance helper to reduce replication
 - *(main)* Reorganize main
+- *(main)* Break down main into helper functions
 
 ### 🧪 Testing
 
