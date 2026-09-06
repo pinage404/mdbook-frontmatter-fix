@@ -22,6 +22,29 @@ pub fn generate_toc(content: &str) -> String {
     lines.join("\n")
 }
 
+#[must_use]
+pub fn inject_toc(content: &str) -> String {
+    let toc = generate_toc(content);
+    if toc.is_empty() {
+        return content.to_string();
+    }
+
+    let toc_block = format!("## Table of Contents\n\n{toc}\n\n");
+
+    if content.starts_with("---") {
+        let inner = content.trim_start_matches("---").trim_start_matches('\n');
+        if let Some(close) = inner.find("\n---") {
+            let after_fm = &inner[close + 4..];
+            let yaml = &inner[..close];
+            return format!(
+                "---\n{yaml}\n---\n\n{toc_block}{}",
+                after_fm.trim_start_matches('\n')
+            );
+        }
+    }
+    format!("{toc_block}{content}")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
