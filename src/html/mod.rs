@@ -94,4 +94,13 @@ mod tests {
         let diags = check_includes(content, dir.path());
         assert!(diags.is_empty());
     }
+
+    #[test]
+    fn broken_internal_link_produces_diagnostic() {
+        let dir = tempfile::tempdir().unwrap();
+        let content = "[see this](./nonexistent.md)\n";
+        let diags = check_links(content, dir.path());
+        assert_eq!(diags.len(), 1);
+        assert_eq!(diags[0].code, "html::broken-link");
+    }
 }
