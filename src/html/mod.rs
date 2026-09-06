@@ -75,6 +75,15 @@ pub fn check_links(content: &str, file_dir: &Path) -> Vec<Diagnostic> {
             // Strip anchor from path
             let path = target.split('#').next().unwrap_or(target);
 
+            // Skip non-markdown links (images, PDFs, etc.)
+            let ext = std::path::Path::new(path)
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("");
+            if !matches!(ext, "md" | "markdown" | "") {
+                continue;
+            }
+
             let resolved = file_dir.join(path);
             if !resolved.exists() {
                 diags.push(Diagnostic {
