@@ -83,4 +83,14 @@ mod tests {
         assert_eq!(diags.len(), 1);
         assert_eq!(diags[0].code, "html::broken-include");
     }
+
+    #[test]
+    fn valid_include_path_produces_no_diagnostics() {
+        let dir = tempfile::tempdir().unwrap();
+        let file = dir.path().join("example.rs");
+        fs::write(&file, "fn main() {}").unwrap();
+        let content = "{{#include example.rs}}\n";
+        let diags = check_includes(content, dir.path());
+        assert!(diags.is_empty());
+    }
 }
