@@ -32,6 +32,7 @@ fn check_tag_balance(content: &str, tag: &str, code: &'static str) -> Option<Dia
     }
 }
 
+#[must_use]
 pub fn check_includes(content: &str, file_dir: &Path) -> Vec<Diagnostic> {
     let mut diags = Vec::new();
 

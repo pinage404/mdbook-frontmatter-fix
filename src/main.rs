@@ -35,6 +35,10 @@ struct Cli {
     /// Target file for --set and --tag overrides
     #[arg(value_name = "FILE")]
     file: Option<String>,
+
+    /// Check include paths and internal links
+    #[arg(long)]
+    links: bool,
 }
 
 fn read_or_exit(path: &str) -> String {
@@ -66,8 +70,9 @@ fn main() {
     let lang = book::parse_language(&read_or_exit("book.toml"));
     let paths = summary::parse_summary(&read_or_exit("src/SUMMARY.md"));
 
-    let run_fm = cli.fm || !cli.html;
-    let run_html = cli.html || !cli.fm;
+    let run_fm = cli.fm || (!cli.fm && !cli.html && !cli.links);
+    let run_html = cli.html || (!cli.fm && !cli.html && !cli.links);
+    let run_links = cli.links || (!cli.fm && !cli.html && !cli.links);
     let mut total = 0;
 
     if let Some(ref file) = cli.file {
@@ -112,6 +117,10 @@ fn main() {
         }
         if run_html {
             diags.extend(html::check_html(&content));
+        }
+        if run_links {
+            let file_dir = Path::new(&full_path).parent().unwrap_or(Path::new("src"));
+            diags.extend(html::check_includes(&content, file_dir));
         }
 
         for diag in &diags {
