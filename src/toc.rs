@@ -27,4 +27,12 @@ mod tests {
         assert!(toc.contains("- [Second Section](#second-section)"));
         assert!(!toc.contains("My Chapter")); // skip h1
     }
+
+    #[test]
+    fn generates_nested_toc() {
+        let content = "# My Chapter\n\n## First Section\n\n### Subsection\n\nContent.\n";
+        let toc = generate_toc(content);
+        assert!(toc.contains("- [First Section](#first-section)"));
+        assert!(toc.contains("  - [Subsection](#subsection)"));
+    }
 }
