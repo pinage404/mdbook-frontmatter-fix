@@ -75,6 +75,16 @@ fn handle_file_command(cli: &Cli) {
     };
     let mut current = content;
 
+    if cli.strip {
+        let stripped = mdbook_frontmatter_strip::strip_frontmatter(&current);
+        if cli.dry_run {
+            eprintln!("would strip frontmatter from: {full_path}");
+        } else {
+            write_fixed(&full_path, stripped);
+        }
+        return;
+    }
+
     if cli.edit {
         let fm_block = fm::extract_frontmatter(&current).unwrap_or_else(|| {
             eprintln!("error: no frontmatter found in {full_path}");
@@ -102,10 +112,9 @@ fn handle_file_command(cli: &Cli) {
         current = fm::fix_missing_tags(&current, &cli.tag);
     }
     if cli.dry_run {
-        eprintln!("would strip frontmatter from: {full_path}");
+        eprintln!("would write: {full_path}\n{current}");
     } else {
         write_fixed(&full_path, current);
-        eprintln!("stripped: {full_path}");
     }
 }
 
@@ -205,7 +214,7 @@ fn main() {
             };
             let stripped = mdbook_frontmatter_strip::strip_frontmatter(&content);
             if cli.dry_run {
-                eprintln!("would strip: {full_path}\n{stripped}");
+                eprintln!("would strip frontmatter from: {full_path}");
             } else {
                 write_fixed(&full_path, stripped);
             }
