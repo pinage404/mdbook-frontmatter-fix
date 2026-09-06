@@ -158,8 +158,16 @@ fn main() {
                         title,
                         author: commit.as_ref().map_or("Unknown", |c| c.author.as_str()),
                         date: commit.as_ref().map_or("Unknown", |c| c.date.as_str()),
-                        lang: &lang,
-                        tags: tags::infer_tags(path),
+                        lang: if excluded.contains(&"lang".to_string()) {
+                            ""
+                        } else {
+                            &lang
+                        },
+                        tags: if excluded.contains(&"tags".to_string()) {
+                            vec![]
+                        } else {
+                            tags::infer_tags(path)
+                        },
                     },
                 );
                 if cli.dry_run {
