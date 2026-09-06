@@ -137,4 +137,14 @@ mod tests {
         assert_eq!(diags.len(), 1);
         assert_eq!(diags[0].code, "html::broken-link");
     }
+
+    #[test]
+    fn valid_internal_link_produces_no_diagnostics() {
+        let dir = tempfile::tempdir().unwrap();
+        let target = dir.path().join("existing.md");
+        std::fs::write(&target, "# Existing").unwrap();
+        let content = "[see this](existing.md)\n";
+        let diags = check_links(content, dir.path());
+        assert!(diags.is_empty());
+    }
 }
