@@ -248,4 +248,14 @@ mod tests {
         let fm = extract_frontmatter(content);
         assert!(fm.is_none());
     }
+
+    #[test]
+    fn replaces_frontmatter_block() {
+        let content = "---\ntitle: Hello\nauthor: Jr\n---\n\nSome content.\n";
+        let new_fm = "---\ntitle: Updated Title\nauthor: Jr\n---\n";
+        let result = replace_frontmatter(content, new_fm);
+        assert!(result.contains("title: Updated Title"));
+        assert!(result.contains("Some content."));
+        assert!(!result.contains("title: Hello"));
+    }
 }
