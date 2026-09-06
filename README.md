@@ -32,9 +32,13 @@ fmf --fix                                    # auto-fix what can be fixed
 fmf --dry-run                                # preview fixes without writing
 fmf --set "title=My Title" io/my-file.md     # override a field in one file
 fmf --tag rust --tag cli io/my-file.md       # set tags on one file
+fmf --strip                                  # strip fm from all chapters
+fmf --strip io/input_output.md               # strip fm from single file
+fmf --strip --dry-run                        # preview without writing
+fmf --edit io/input_output.md                # opens just the fm in $EDITOR
 ```
 
-Exit code is `0` when clean, `1` when issues are found — CI friendly.
+Exit code is `0` when clean, `1` when issues are found, CI friendly.
 
 ## Checks
 
@@ -129,6 +133,32 @@ Combine with `--dry-run` to preview before writing:
 ```sh
 fmf --set "title=My Title" io/input_output.md --dry-run
 ```
+
+## Edit frontmatter
+
+Open a chapter's frontmatter in `$EDITOR` for quick editing:
+
+```sh
+fmf --edit io/input_output.md
+```
+
+Only the frontmatter block is shown, the chapter content stays out of view.
+Uses `$EDITOR` with a fallback to `vi`.
+
+## Strip frontmatter
+
+Remove frontmatter from all chapters or a single file:
+
+```sh
+fmf --strip                        # strip all chapters
+fmf --strip io/input_output.md     # strip one file
+fmf --strip --dry-run              # preview without writing
+```
+
+Useful for cleaning up before publishing or removing frontmatter you no longer
+need. Uses
+[mdbook-frontmatter-strip](https://crates.io/crates/mdbook-frontmatter-strip)
+under the hood.
 
 ## Configuration
 
