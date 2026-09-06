@@ -42,6 +42,9 @@ struct Cli {
 
     #[arg(long)]
     edit: bool,
+
+    #[arg(long)]
+    strip: bool,
 }
 
 fn read_or_exit(path: &str) -> String {
@@ -191,6 +194,24 @@ fn main() {
     }
 
     let paths = summary::parse_summary(&read_or_exit("src/SUMMARY.md"));
+
+    if cli.strip {
+        for path in &paths {
+            let full_path = format!("src/{path}");
+            let Ok(content) = fs::read_to_string(&full_path) else {
+                eprintln!("error: could not read {full_path}");
+                continue;
+            };
+            let stripped = mdbook_frontmatter_strip::strip_frontmatter(&content);
+            if cli.dry_run {
+                eprintln!("would strip: {full_path}\n{stripped}");
+            } else {
+                write_fixed(&full_path, stripped);
+            }
+        }
+        return;
+    }
+
     let run_fm = cli.fm || !cli.html && !cli.links;
     let run_html = cli.html || !cli.fm && !cli.links;
     let run_links = cli.links || !cli.fm && !cli.html;
