@@ -2,6 +2,34 @@
 
 ### 🚀 Features
 
+- *(fm)* Implement extract_frontmatter to isolate the frontmatter block
+- *(fm)* Implement replace_frontmatter to swap edited frontmatter
+- *(main)* Wire in --edit, add flag to Cli struct
+- *(main)* Wire in --strip, add flag to Cli struct
+- *(main)* Add --strip flag to remove frontmatter from one or all chapters
+
+### 🐛 Bug Fixes
+
+- *(main)* Trim body content, just show what's being stripped with --strip
+
+### 🚜 Refactor
+
+- *(main)* Extract handle_file_command and apply_fixes into separate functions
+
+### 🧪 Testing
+
+- *(fm)* Add test for editing frontmatter
+- *(fm)* Add test replacing the fm block
+- *(fm)* Add test for stripping frontmatter
+
+### ⚙️ Miscellaneous Tasks
+
+- Fix clippy lints
+- README edits
+## [0.1.0] - 2026-09-06
+
+### 🚀 Features
+
 - Layout project structure
 - Add check_frontmatter function to return a diagnostic when it detects missing frontmatter
 - *(fm)* Add date check to check_frontmatter
@@ -104,3 +132,8 @@
 - Update CHANGELOG
 - Fix clippy lints
 - README edits
+
+### 💼 Other
+
+- CHANGELOG
+- Cargo.toml
