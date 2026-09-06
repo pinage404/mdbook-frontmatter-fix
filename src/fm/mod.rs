@@ -18,22 +18,22 @@ pub fn fix_frontmatter(content: &str, fm: &Frontmatter<'_>) -> String {
     let mut block = String::from("---\n");
 
     if !fm.title.is_empty() {
-        let _ = writeln!(block, "title: {}\n", fm.title);
+        let _ = writeln!(block, "title: {}", fm.title);
     }
     if !fm.author.is_empty() {
-        let _ = writeln!(block, "author: {}\n", fm.author);
+        let _ = writeln!(block, "author: {}", fm.author);
     }
     if !fm.date.is_empty() {
-        let _ = writeln!(block, "date: {}\n", fm.date);
+        let _ = writeln!(block, "date: {}", fm.date);
     }
     if !fm.lang.is_empty() {
-        let _ = writeln!(block, "lang: {}\n", fm.lang);
+        let _ = writeln!(block, "lang: {}", fm.lang);
     }
     if !fm.tags.is_empty() {
-        block.push_str("tags:\n");
+        block.push_str("tags:");
 
         for tag in &fm.tags {
-            let _ = writeln!(block, "  - {tag}\n");
+            let _ = writeln!(block, "  - {tag}");
         }
     }
     block.push_str("---\n");
