@@ -102,9 +102,10 @@ fn handle_file_command(cli: &Cli) {
         current = fm::fix_missing_tags(&current, &cli.tag);
     }
     if cli.dry_run {
-        eprintln!("would write: {full_path}\n{current}");
+        eprintln!("would strip frontmatter from: {full_path}");
     } else {
         write_fixed(&full_path, current);
+        eprintln!("stripped: {full_path}");
     }
 }
 
