@@ -116,6 +116,18 @@ pub fn fix_missing_tags(content: &str, tags: &[String]) -> String {
 pub fn fix_missing_lang(content: &str, lang: &str) -> String {
     content.replacen("\n---", &format!("\nlang: {lang}\n---"), 1)
 }
+
+#[must_use]
+pub fn extract_frontmatter(content: &str) -> Option<String> {
+    if !content.starts_with("---") {
+        return None;
+    }
+    let inner = content.trim_start_matches("---").trim_start_matches('\n');
+    let close = inner.find("\n---")?;
+    let yaml = &inner[..close];
+    Some(format!("---\n{yaml}\n---\n"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
