@@ -6,6 +6,7 @@ pub mod html;
 pub mod overrides;
 pub mod summary;
 pub mod tags;
+pub mod toc;
 
 #[allow(clippy::struct_excessive_bools)]
 pub struct RunOptions<'a> {
