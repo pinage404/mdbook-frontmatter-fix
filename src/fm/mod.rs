@@ -128,6 +128,16 @@ pub fn extract_frontmatter(content: &str) -> Option<String> {
     Some(format!("---\n{yaml}\n---\n"))
 }
 
+#[must_use]
+pub fn replace_frontmatter(content: &str, new_fm: &str) -> String {
+    let inner = content.trim_start_matches("---").trim_start_matches('\n');
+    let Some(close) = inner.find("\n---") else {
+        return format!("{new_fm}\n{content}");
+    };
+    let body = &inner[close + 4..]; // skip past closing ---
+    format!("{new_fm}\n{body}")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
