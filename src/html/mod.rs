@@ -147,4 +147,12 @@ mod tests {
         let diags = check_links(content, dir.path());
         assert!(diags.is_empty());
     }
+
+    #[test]
+    fn image_links_are_skipped() {
+        let dir = tempfile::tempdir().unwrap();
+        let content = "![logo](img/rust-gaps.png)\n";
+        let diags = check_links(content, dir.path());
+        assert!(diags.is_empty());
+    }
 }
