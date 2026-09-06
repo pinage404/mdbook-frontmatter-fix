@@ -1,3 +1,5 @@
+use std::fmt::Write;
+
 pub struct Diagnostic {
     pub code: &'static str,
     pub message: String,
@@ -16,21 +18,22 @@ pub fn fix_frontmatter(content: &str, fm: &Frontmatter<'_>) -> String {
     let mut block = String::from("---\n");
 
     if !fm.title.is_empty() {
-        block.push_str(&format!("title: {}\n", fm.title));
+        let _ = writeln!(block, "title: {}\n", fm.title);
     }
     if !fm.author.is_empty() {
-        block.push_str(&format!("author: {}\n", fm.author));
+        let _ = writeln!(block, "author: {}\n", fm.author);
     }
     if !fm.date.is_empty() {
-        block.push_str(&format!("date: {}\n", fm.date));
+        let _ = writeln!(block, "date: {}\n", fm.date);
     }
     if !fm.lang.is_empty() {
-        block.push_str(&format!("lang: {}\n", fm.lang));
+        let _ = writeln!(block, "lang: {}\n", fm.lang);
     }
     if !fm.tags.is_empty() {
         block.push_str("tags:\n");
+
         for tag in &fm.tags {
-            block.push_str(&format!("  - {tag}\n"));
+            let _ = writeln!(block, "  - {tag}\n");
         }
     }
     block.push_str("---\n");

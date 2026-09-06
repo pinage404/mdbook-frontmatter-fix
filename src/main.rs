@@ -96,13 +96,10 @@ fn main() {
         let mut current = content;
 
         if cli.edit {
-            let fm_block = match fm::extract_frontmatter(&current) {
-                Some(fm) => fm,
-                None => {
-                    eprintln!("error: no frontmatter found in {full_path}");
-                    std::process::exit(1);
-                }
-            };
+            let fm_block = fm::extract_frontmatter(&current).unwrap_or_else(|| {
+                eprintln!("error: no frontmatter found in {full_path}");
+                std::process::exit(1);
+            });
 
             // write frontmatter to a temp file
             let tmp = std::env::temp_dir().join("fmf_edit.yaml");
