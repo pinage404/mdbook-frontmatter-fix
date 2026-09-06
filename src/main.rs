@@ -39,6 +39,9 @@ struct Cli {
     /// Check include paths and internal links
     #[arg(long)]
     links: bool,
+
+    #[arg(long)]
+    edit: bool,
 }
 
 fn read_or_exit(path: &str) -> String {
@@ -92,6 +95,31 @@ fn main() {
 
         let mut current = content;
 
+        if cli.edit {
+            let fm_block = match fm::extract_frontmatter(&current) {
+                Some(fm) => fm,
+                None => {
+                    eprintln!("error: no frontmatter found in {full_path}");
+                    std::process::exit(1);
+                }
+            };
+
+            // write frontmatter to a temp file
+            let tmp = std::env::temp_dir().join("fmf_edit.yaml");
+            fs::write(&tmp, &fm_block).expect("failed to write temp file");
+
+            // open in $EDITOR
+            let editor = std::env::var("EDITOR").unwrap_or_else(|_| "vi".to_string());
+            std::process::Command::new(&editor)
+                .arg(&tmp)
+                .status()
+                .expect("failed to open editor");
+
+            let edited = fs::read_to_string(&tmp).expect("failed to read temp file");
+            current = fm::replace_frontmatter(&current, &edited);
+            write_fixed(&full_path, current);
+            return;
+        }
         for s in &cli.set {
             if let Some((key, value)) = overrides::parse_set(s) {
                 current = overrides::apply_override(&current, key, value);
@@ -111,6 +139,7 @@ fn main() {
 
         return;
     }
+
     for path in &paths {
         let full_path = format!("src/{path}");
         let Ok(content) = fs::read_to_string(&full_path) else {
