@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use crate::fm::Diagnostic;
 
 #[must_use]
@@ -30,9 +32,32 @@ fn check_tag_balance(content: &str, tag: &str, code: &'static str) -> Option<Dia
     }
 }
 
+pub fn check_includes(content: &str, file_dir: &Path) -> Vec<Diagnostic> {
+    let mut diags = Vec::new();
+
+    for line in content.lines() {
+        if let Some(inner) = line
+            .strip_prefix("{{#include ")
+            .and_then(|s| s.strip_suffix("}}"))
+        {
+            let include_path = file_dir.join(inner.trim());
+            if !include_path.exists() {
+                diags.push(Diagnostic {
+                    code: "html::broken-include",
+                    message: format!("include path does not exist: {inner}"),
+                });
+            }
+        }
+    }
+
+    diags
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use std::fs;
 
     #[test]
     fn unclosed_details_block_produces_diagnostic() {
