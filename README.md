@@ -25,11 +25,13 @@ Run from your book root (where `book.toml` lives).
 ## Usage
 
 ```sh
-fmf              # run all checks
-fmf --fm         # frontmatter checks only
-fmf --html       # HTML structure checks only
-fmf --fix        # auto-fix what can be fixed
-fmf --dry-run    # shows what `fmf --fix` will do before writing to disk
+fmf                                          # run all checks
+fmf --fm                                     # frontmatter checks only
+fmf --html                                   # HTML structure checks only
+fmf --fix                                    # auto-fix what can be fixed
+fmf --dry-run                                # preview fixes without writing
+fmf --set "title=My Title" io/my-file.md     # override a field in one file
+fmf --tag rust --tag cli io/my-file.md       # set tags on one file
 ```
 
 Exit code is `0` when clean, `1` when issues are found — CI friendly.
@@ -55,6 +57,13 @@ Exit code is `0` when clean, `1` when issues are found — CI friendly.
 | `html::unclosed-details` | `<details>` without `</details>` |
 | `html::unclosed-summary` | `<summary>` without `</summary>` |
 
+### Links (`--links`)
+
+| Code                   | Description                             |
+| ---------------------- | --------------------------------------- |
+| `html::broken-include` | `{{#include path}}` file doesn't exist  |
+| `html::broken-link`    | Internal markdown link target not found |
+
 ## Auto-fix
 
 `fmf --fix` writes missing frontmatter to disk. For each chapter without a `---`
@@ -73,6 +82,69 @@ tags:
 
 Chapters that already have frontmatter are left untouched. HTML issues are
 reported but not auto-fixed, the correct insertion point is ambiguous.
+
+## Dry run
+
+Preview what `--fix` would write without touching any files:
+
+```sh
+fmf --dry-run
+```
+
+```text
+would fix: src/io/input_output.md
+---
+title: input_output
+author: Jr
+date: 2026-09-03
+lang: en
+tags:
+  - io
+---
+...
+```
+
+## Field overrides
+
+```sh
+fmf --set "title=Input and Output" io/input_output.md
+fmf --set "author=Tom" --set "date=2026-01-01" io/input_output.md
+```
+
+You can pass the path with or withour the `src/` prefix, both work:
+
+```sh
+fmf --set "title=My Title" src/io/input_output.md
+fmf --set "title=My Title" io/input_output.md
+```
+
+Add or replace tags on a single file:
+
+```sh
+fmf --tag rust --tag cli io/input_output.md
+```
+
+Combine with `--dry-run` to preview before writing:
+
+```sh
+fmf --set "title=My Title" io/input_output.md --dry-run
+```
+
+## Configuration
+
+Create a `fmf.toml` in your book root to configure which fields `fmf` checks and
+injects:
+
+```toml
+# fmf.toml
+exclude_fields = ["lang", "tags"]
+```
+
+Excluded fields are skipped during validation and not injected by `--fix`.
+Useful when your book doesn't need RSS metadata (skip date, author) or
+multilingual support (skip `lang`).
+
+All fields are required by default when no `fmf.toml` is present.
 
 ## How tags are inferred
 
@@ -110,4 +182,4 @@ fmf || exit 1
 
 ## License
 
-MIT
+Apache-2.0
