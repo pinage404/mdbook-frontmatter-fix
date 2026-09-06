@@ -36,11 +36,21 @@
 - *(overrides)* Implement apply_override to override fm values
 - *(overrides)* Add missing field when applying override
 - *(main)* Wire in --set --tag to main. When a --file is specified along with --set or --tag, apply the overrides to that file directly without running all checks
+- *(html)* Add check_includes function to pass test
+- *(main)* Wire in check_includes into main validation loop
+- *(html)* Add check_links to detect broken internal markdown links
+- *(main)* Wire in check_links
+- *(html)* Add extension skip inside check_links
+- *(book)* Add parse_excluded_fields to read fmf config from book.toml
+- *(fm)* Add excluded fields support to check_frontmatter
+- *(fm)* Skip empty/excluded fields on fix_frontmatter
+- *(main)* Respect exclude_fields when injecting frontmatter with --fix
 
 ### 🐛 Bug Fixes
 
 - *(summary)* Use rfind in parse_summary to correctly parse chapter paths containing parentheses/backticks in title
 - *(main)* Trim src/ from file path matches
+- *(book)* Simplify parse_excluded_fields
 
 ### 🚜 Refactor
 
@@ -72,6 +82,14 @@
 - *(overrides)* Verify parse_set handles empty value and missing delimiter
 - *(overrides)* Verify key=value overrides are parsed into a hashmap
 - *(overrides)* If the field isn't found inject it
+- *(html)* Broken {{#include}} path produces diag
+- *(html)* Verify valid include path produces no diagnostics
+- *(html)* Broken link produces diag
+- *(html)* Happy path for invalid links
+- *(html)* Image links are skipped
+- *(book)* Parse exclude fields from book.toml
+- *(book)* Missing fmf section returns empty excluded fields
+- *(book)* Excluded fields aren't checked
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -83,3 +101,6 @@
 - Regenerate CHANGELOG
 - Add overrides module scaffold
 - Add README
+- Update CHANGELOG
+- Fix clippy lints
+- README edits
