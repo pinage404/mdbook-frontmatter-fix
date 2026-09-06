@@ -222,4 +222,18 @@ mod tests {
         let diags = check_frontmatter(&fixed, &[]);
         assert!(diags.is_empty());
     }
+
+    #[test]
+    fn extracts_frontmatter_block() {
+        let content = "---\ntitle: Hello\nauthor: Jr\n---\n\nSome content.\n";
+        let fm = extract_frontmatter(content);
+        assert_eq!(fm, Some("---\ntitle: Hello\nauthor: Jr\n---\n".to_string()));
+    }
+
+    #[test]
+    fn returns_none_when_no_frontmatter() {
+        let content = "# Hello\n\nSome content.\n";
+        let fm = extract_frontmatter(content);
+        assert!(fm.is_none());
+    }
 }
