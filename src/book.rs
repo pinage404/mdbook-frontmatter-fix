@@ -46,6 +46,8 @@ pub fn parse_excluded_fields(content: &str) -> Vec<String> {
 mod tests {
     use super::*;
 
+    use crate::fm;
+
     #[test]
     fn parses_language_from_book_toml() {
         let content = "[book]\ntitle = \"My Book\"\nlanguage = \"en\"\n";
@@ -71,6 +73,14 @@ mod tests {
     fn missing_fmf_section_returns_empty_excluded_fields() {
         let content = "[book]\ntitle = \"My Book\"\n";
         let excluded = parse_excluded_fields(content);
-        assert!(excluded.is_empty());
+        assert_eq!(excluded, [] as [std::string::String; 0]);
+    }
+
+    #[test]
+    fn excluded_fields_are_not_checked() {
+        let content = "---\ntitle: Hello\nauthor: Jr\ndate: 2026-09-03\n---\n\nContent.\n";
+        let excluded = vec!["lang".to_string(), "tags".to_string()];
+        let diags = fm::check_frontmatter(content, &excluded);
+        assert!(diags.is_empty());
     }
 }
