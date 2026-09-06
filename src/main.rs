@@ -1,7 +1,7 @@
 use std::{fs, path::Path};
 
 use clap::Parser;
-use mdbook_frontmatter_fix::{book, fm, fm::Frontmatter, git, html, overrides};
+use mdbook_frontmatter_fix::{book, fm, fm::Frontmatter, git, html, overrides, toc};
 use mdbook_frontmatter_fix::{summary, tags};
 
 #[allow(clippy::struct_excessive_bools)]
@@ -45,6 +45,9 @@ struct Cli {
 
     #[arg(long)]
     strip: bool,
+
+    #[arg(long)]
+    toc: bool,
 }
 
 fn read_or_exit(path: &str) -> String {
@@ -74,6 +77,16 @@ fn handle_file_command(cli: &Cli) {
         std::process::exit(1);
     };
     let mut current = content;
+
+    if cli.toc {
+        let result = toc::inject_toc(&current);
+        if cli.dry_run {
+            eprintln!("would inject TOC into: {full_path}\n{result}");
+        } else {
+            write_fixed(&full_path, result);
+        }
+        return;
+    }
 
     if cli.strip {
         let stripped = mdbook_frontmatter_strip::strip_frontmatter(&current);
