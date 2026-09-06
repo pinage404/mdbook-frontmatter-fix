@@ -235,6 +235,22 @@ fn main() {
         return;
     }
 
+    if cli.toc {
+        for path in &paths {
+            let full_path = format!("src/{path}");
+            let Ok(content) = fs::read_to_string(&full_path) else {
+                eprintln!("error: could not read {full_path}");
+                continue;
+            };
+            let result = toc::inject_toc(&content);
+            if cli.dry_run {
+                eprintln!("would inject TOC into: {full_path}");
+            } else {
+                write_fixed(&full_path, result);
+            }
+        }
+        return;
+    }
     let run_fm = cli.fm || !cli.html && !cli.links;
     let run_html = cli.html || !cli.fm && !cli.links;
     let run_links = cli.links || !cli.fm && !cli.html;
