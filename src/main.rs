@@ -70,9 +70,13 @@ fn main() {
     let lang = book::parse_language(&read_or_exit("book.toml"));
     let paths = summary::parse_summary(&read_or_exit("src/SUMMARY.md"));
 
-    let run_fm = cli.fm || (!cli.fm && !cli.html && !cli.links);
-    let run_html = cli.html || (!cli.fm && !cli.html && !cli.links);
-    let run_links = cli.links || (!cli.fm && !cli.html && !cli.links);
+    // let run_fm = cli.fm || (!cli.fm && !cli.html && !cli.links);
+    let run_fm = cli.fm || !cli.html && !cli.links;
+
+    // let run_html = cli.html || (!cli.fm && !cli.html && !cli.links);
+    let run_html = cli.html || !cli.fm && !cli.links;
+    // let run_links = cli.links || (!cli.fm && !cli.html && !cli.links);
+    let run_links = cli.links || !cli.fm && !cli.html;
     let mut total = 0;
 
     if let Some(ref file) = cli.file {
@@ -119,7 +123,9 @@ fn main() {
             diags.extend(html::check_html(&content));
         }
         if run_links {
-            let file_dir = Path::new(&full_path).parent().unwrap_or(Path::new("src"));
+            let file_dir = Path::new(&full_path)
+                .parent()
+                .unwrap_or_else(|| Path::new("src"));
             diags.extend(html::check_includes(&content, file_dir));
             diags.extend(html::check_links(&content, file_dir));
         }
