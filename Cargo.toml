@@ -1,6 +1,6 @@
 [package]
 name = "mdbook-frontmatter-fix"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 description = "A linter and fixer for mdBook projects: validates frontmatter fields, HTML structure, and broken links with clippy-style diagnostics and auto-fix"
 license = "Apache-2.0"
