@@ -27,4 +27,11 @@ mod tests {
         let lang = parse_language(content);
         assert_eq!(lang, "en");
     }
+
+    #[test]
+    fn parses_exclude_fields_from_book_toml() {
+        let content = "[book]\ntitle = \"My Book\"\n\n[preprocessor.fmf]\nexclude_fields = [\"author\", \"lang\"]\n";
+        let excluded = parse_excluded_fields(content);
+        assert_eq!(excluded, vec!["author", "lang"]);
+    }
 }
