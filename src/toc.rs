@@ -77,4 +77,12 @@ mod tests {
         let toc_pos = result.find("## Table of Contents").unwrap();
         assert!(toc_pos > fm_end);
     }
+
+    #[test]
+    fn skips_injection_if_toc_already_exists() {
+        let content = "---\ntitle: Hello\n---\n\n## Table of Contents\n\n- [First](#first)\n\n## First\n\nContent.\n";
+        let result = inject_toc(content);
+        // should not add a second TOC
+        assert_eq!(result.matches("## Table of Contents").count(), 1);
+    }
 }
