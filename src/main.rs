@@ -121,6 +121,7 @@ fn main() {
         if run_links {
             let file_dir = Path::new(&full_path).parent().unwrap_or(Path::new("src"));
             diags.extend(html::check_includes(&content, file_dir));
+            diags.extend(html::check_links(&content, file_dir));
         }
 
         for diag in &diags {
