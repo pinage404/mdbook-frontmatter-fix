@@ -1,4 +1,33 @@
-## [unreleased]
+## [0.3.0] - 2026-09-06
+
+### 🚀 Features
+
+- *(toc)* Add nested heading support with indentation for h3
+- *(toc)* Add inject_toc to insert table of contents after frontmatter
+- *(main)* Wire in --toc
+- *(toc)* Add check for existing toc
+- *(toc)* Add relative indentation
+- *(toc)* Add support for header level 4
+- *(main)* Wire in --toc for all chapters at once
+
+### 🧪 Testing
+
+- Write first toc test & make it pass
+- Generate nested toc
+- *(toc)* Inject toc after frontmatter
+- *(toc)* Skip injection if toc is already present
+- *(toc)* Add test for #### level
+
+### ⚙️ Miscellaneous Tasks
+
+- Layout toc module scaffolding
+- Version bump
+- *(README)* Add section for TOC
+
+### 💼 Other
+
+- *(fm)* Writeln! already adds a newline when I added another making fm have extra blank lines
+## [0.2.0] - 2026-09-06
 
 ### 🚀 Features
 
@@ -27,9 +56,11 @@
 - Fix clippy lints
 - README edits
 - Version bump
+- Commit lockfile
 
 ### 💼 Other
 
+- CHANGELOG
 - CHANGELOG
 ## [0.1.0] - 2026-09-06
 
