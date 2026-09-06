@@ -62,6 +62,113 @@ fn has_diag(diags: &[fm::Diagnostic], code: &str) -> bool {
     diags.iter().any(|d| d.code == code)
 }
 
+fn handle_file_command(cli: &Cli) {
+    let Some(ref file) = cli.file else { return };
+    let file = file.trim_start_matches("src/");
+    let full_path = format!("src/{file}");
+    let Ok(content) = fs::read_to_string(&full_path) else {
+        eprintln!("error: could not read {full_path}");
+        std::process::exit(1);
+    };
+    let mut current = content;
+
+    if cli.edit {
+        let fm_block = fm::extract_frontmatter(&current).unwrap_or_else(|| {
+            eprintln!("error: no frontmatter found in {full_path}");
+            std::process::exit(1);
+        });
+        let tmp = std::env::temp_dir().join("fmf_edit.yaml");
+        fs::write(&tmp, &fm_block).expect("failed to write temp file");
+        let editor = std::env::var("EDITOR").unwrap_or_else(|_| "vi".to_string());
+        std::process::Command::new(&editor)
+            .arg(&tmp)
+            .status()
+            .expect("failed to open editor");
+        let edited = fs::read_to_string(&tmp).expect("failed to read temp file");
+        current = fm::replace_frontmatter(&current, &edited);
+        write_fixed(&full_path, current);
+        return;
+    }
+
+    for s in &cli.set {
+        if let Some((key, value)) = overrides::parse_set(s) {
+            current = overrides::apply_override(&current, key, value);
+        }
+    }
+    if !cli.tag.is_empty() {
+        current = fm::fix_missing_tags(&current, &cli.tag);
+    }
+    if cli.dry_run {
+        eprintln!("would write: {full_path}\n{current}");
+    } else {
+        write_fixed(&full_path, current);
+    }
+}
+
+fn apply_fixes(
+    cli: &Cli,
+    path: &str,
+    full_path: &str,
+    content: &str,
+    diags: &[fm::Diagnostic],
+    lang: &str,
+    excluded: &[String],
+) {
+    if has_diag(diags, "fm::missing-frontmatter") {
+        let abs_path = Path::new(full_path).canonicalize().unwrap();
+        let commit = git::file_commit_info(&abs_path, "%Y-%m-%d", false)
+            .ok()
+            .flatten();
+        let title = path
+            .trim_end_matches(".md")
+            .split('/')
+            .next_back()
+            .unwrap_or("untitled");
+        let fixed = fm::fix_frontmatter(
+            content,
+            &Frontmatter {
+                title,
+                author: commit.as_ref().map_or("Unknown", |c| c.author.as_str()),
+                date: commit.as_ref().map_or("Unknown", |c| c.date.as_str()),
+                lang: if excluded.contains(&"lang".to_string()) {
+                    ""
+                } else {
+                    lang
+                },
+                tags: if excluded.contains(&"tags".to_string()) {
+                    vec![]
+                } else {
+                    tags::infer_tags(path)
+                },
+            },
+        );
+        if cli.dry_run {
+            eprintln!("would fix: {full_path}\n{fixed}");
+        } else {
+            write_fixed(full_path, fixed);
+        }
+    }
+
+    if has_diag(diags, "fm::missing-lang") {
+        let fixed = fm::fix_missing_lang(content, lang);
+        if cli.dry_run {
+            eprintln!("would fix: {full_path}\n{fixed}");
+        } else {
+            write_fixed(full_path, fixed);
+        }
+    }
+
+    if has_diag(diags, "fm::missing-tags") {
+        let content = fs::read_to_string(full_path).unwrap_or_default();
+        let fixed = fm::fix_missing_tags(&content, &tags::infer_tags(path));
+        if cli.dry_run {
+            eprintln!("would fix: {full_path}\n{fixed}");
+        } else {
+            write_fixed(full_path, fixed);
+        }
+    }
+}
+
 fn main() {
     let cli = Cli::parse();
 
@@ -71,7 +178,6 @@ fn main() {
     }
 
     let lang = book::parse_language(&read_or_exit("book.toml"));
-    let paths = summary::parse_summary(&read_or_exit("src/SUMMARY.md"));
 
     let excluded = if Path::new("fmf.toml").exists() {
         book::parse_excluded_fields(&read_or_exit("fmf.toml"))
@@ -79,63 +185,16 @@ fn main() {
         Vec::new()
     };
 
-    let run_fm = cli.fm || !cli.html && !cli.links;
+    if cli.file.is_some() {
+        handle_file_command(&cli);
+        return;
+    }
 
+    let paths = summary::parse_summary(&read_or_exit("src/SUMMARY.md"));
+    let run_fm = cli.fm || !cli.html && !cli.links;
     let run_html = cli.html || !cli.fm && !cli.links;
     let run_links = cli.links || !cli.fm && !cli.html;
     let mut total = 0;
-
-    if let Some(ref file) = cli.file {
-        let file = file.trim_start_matches("src/");
-        let full_path = format!("src/{file}");
-        let Ok(content) = fs::read_to_string(&full_path) else {
-            eprintln!("error: could not read {full_path}");
-            std::process::exit(1);
-        };
-
-        let mut current = content;
-
-        if cli.edit {
-            let fm_block = fm::extract_frontmatter(&current).unwrap_or_else(|| {
-                eprintln!("error: no frontmatter found in {full_path}");
-                std::process::exit(1);
-            });
-
-            // write frontmatter to a temp file
-            let tmp = std::env::temp_dir().join("fmf_edit.yaml");
-            fs::write(&tmp, &fm_block).expect("failed to write temp file");
-
-            // open in $EDITOR
-            let editor = std::env::var("EDITOR").unwrap_or_else(|_| "vi".to_string());
-            std::process::Command::new(&editor)
-                .arg(&tmp)
-                .status()
-                .expect("failed to open editor");
-
-            let edited = fs::read_to_string(&tmp).expect("failed to read temp file");
-            current = fm::replace_frontmatter(&current, &edited);
-            write_fixed(&full_path, current);
-            return;
-        }
-        for s in &cli.set {
-            if let Some((key, value)) = overrides::parse_set(s) {
-                current = overrides::apply_override(&current, key, value);
-            }
-        }
-
-        if !cli.tag.is_empty() {
-            let tags: Vec<String> = cli.tag.clone();
-            current = fm::fix_missing_tags(&current, &tags);
-        }
-
-        if cli.dry_run {
-            eprintln!("would write: {full_path}\n{current}");
-        } else {
-            write_fixed(&full_path, current);
-        }
-
-        return;
-    }
 
     for path in &paths {
         let full_path = format!("src/{path}");
@@ -168,62 +227,10 @@ fn main() {
         }
 
         if cli.fix || cli.dry_run {
-            if has_diag(&diags, "fm::missing-frontmatter") {
-                let abs_path = Path::new(&full_path).canonicalize().unwrap();
-                let commit = git::file_commit_info(&abs_path, "%Y-%m-%d", false)
-                    .ok()
-                    .flatten();
-                let title = path
-                    .trim_end_matches(".md")
-                    .split('/')
-                    .next_back()
-                    .unwrap_or("untitled");
-                let fixed = fm::fix_frontmatter(
-                    &content,
-                    &Frontmatter {
-                        title,
-                        author: commit.as_ref().map_or("Unknown", |c| c.author.as_str()),
-                        date: commit.as_ref().map_or("Unknown", |c| c.date.as_str()),
-                        lang: if excluded.contains(&"lang".to_string()) {
-                            ""
-                        } else {
-                            &lang
-                        },
-                        tags: if excluded.contains(&"tags".to_string()) {
-                            vec![]
-                        } else {
-                            tags::infer_tags(path)
-                        },
-                    },
-                );
-                if cli.dry_run {
-                    eprintln!("would fix: {full_path}\n{fixed}");
-                } else {
-                    write_fixed(&full_path, fixed);
-                }
-            }
-
-            if has_diag(&diags, "fm::missing-lang") {
-                let fixed = fm::fix_missing_lang(&content, &lang);
-                if cli.dry_run {
-                    eprintln!("would fix: {full_path}\n{fixed}");
-                } else {
-                    write_fixed(&full_path, fixed);
-                }
-            }
-
-            if has_diag(&diags, "fm::missing-tags") {
-                let content = fs::read_to_string(&full_path).unwrap_or_default();
-
-                let fixed = fm::fix_missing_tags(&content, &tags::infer_tags(path));
-                if cli.dry_run {
-                    eprintln!("would fix: {full_path}\n{fixed}");
-                } else {
-                    write_fixed(&full_path, fixed);
-                }
-            }
+            apply_fixes(&cli, path, &full_path, &content, &diags, &lang, &excluded);
         }
     }
+
     if total == 0 {
         println!("fmf: no issues found");
     } else {
