@@ -13,22 +13,27 @@ pub struct Frontmatter<'a> {
 
 #[must_use]
 pub fn fix_frontmatter(content: &str, fm: &Frontmatter<'_>) -> String {
-    let tags = if fm.tags.is_empty() {
-        "tags: []\n".to_string()
-    } else {
-        format!(
-            "tags:\n{}\n",
-            fm.tags
-                .iter()
-                .map(|t| format!("  - {t}"))
-                .collect::<Vec<_>>()
-                .join("\n")
-        )
-    };
-    let block = format!(
-        "---\ntitle: {}\nauthor: {}\ndate: {}\nlang: {}\n{tags}---\n",
-        fm.title, fm.author, fm.date, fm.lang
-    );
+    let mut block = String::from("---\n");
+
+    if !fm.title.is_empty() {
+        block.push_str(&format!("title: {}\n", fm.title));
+    }
+    if !fm.author.is_empty() {
+        block.push_str(&format!("author: {}\n", fm.author));
+    }
+    if !fm.date.is_empty() {
+        block.push_str(&format!("date: {}\n", fm.date));
+    }
+    if !fm.lang.is_empty() {
+        block.push_str(&format!("lang: {}\n", fm.lang));
+    }
+    if !fm.tags.is_empty() {
+        block.push_str("tags:\n");
+        for tag in &fm.tags {
+            block.push_str(&format!("  - {tag}\n"));
+        }
+    }
+    block.push_str("---\n");
     format!("{block}\n{content}")
 }
 
