@@ -3,14 +3,21 @@ pub fn generate_toc(content: &str) -> String {
     let mut lines = Vec::new();
 
     for line in content.lines() {
-        if line.starts_with("## ") {
-            let title = line.trim_start_matches("## ").trim();
-            let anchor = title
-                .to_lowercase()
-                .replace(' ', "-")
-                .replace(|c: char| !c.is_alphanumeric() && c != '-', "");
-            lines.push(format!("- [{title}](#{anchor})"));
-        }
+        let (level, title) = if line.starts_with("### ") {
+            (3, line.trim_start_matches("### ").trim())
+        } else if line.starts_with("## ") {
+            (2, line.trim_start_matches("## ").trim())
+        } else {
+            continue;
+        };
+
+        let anchor = title
+            .to_lowercase()
+            .replace(' ', "-")
+            .replace(|c: char| !c.is_alphanumeric() && c != '-', "");
+
+        let indent = "  ".repeat(level - 2);
+        lines.push(format!("{indent}- [{title}](#{anchor})"));
     }
     lines.join("\n")
 }
