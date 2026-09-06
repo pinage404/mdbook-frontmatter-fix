@@ -24,7 +24,7 @@ pub fn run_on_chapter(
 ) -> (Vec<fm::Diagnostic>, Option<String>) {
     let mut diags = Vec::new();
     if opts.run_fm {
-        diags.extend(fm::check_frontmatter(content));
+        diags.extend(fm::check_frontmatter(content, &[]));
     }
     if opts.run_html {
         diags.extend(html::check_html(content));

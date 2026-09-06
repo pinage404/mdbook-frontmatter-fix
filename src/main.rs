@@ -70,12 +70,11 @@ fn main() {
     let lang = book::parse_language(&read_or_exit("book.toml"));
     let paths = summary::parse_summary(&read_or_exit("src/SUMMARY.md"));
 
-    // let run_fm = cli.fm || (!cli.fm && !cli.html && !cli.links);
+    let excluded = book::parse_excluded_fields(&read_or_exit("book.toml"));
+
     let run_fm = cli.fm || !cli.html && !cli.links;
 
-    // let run_html = cli.html || (!cli.fm && !cli.html && !cli.links);
     let run_html = cli.html || !cli.fm && !cli.links;
-    // let run_links = cli.links || (!cli.fm && !cli.html && !cli.links);
     let run_links = cli.links || !cli.fm && !cli.html;
     let mut total = 0;
 
@@ -117,7 +116,7 @@ fn main() {
 
         let mut diags = Vec::new();
         if run_fm {
-            diags.extend(fm::check_frontmatter(&content));
+            diags.extend(fm::check_frontmatter(&content, &excluded));
         }
         if run_html {
             diags.extend(html::check_html(&content));
