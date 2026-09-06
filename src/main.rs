@@ -70,7 +70,11 @@ fn main() {
     let lang = book::parse_language(&read_or_exit("book.toml"));
     let paths = summary::parse_summary(&read_or_exit("src/SUMMARY.md"));
 
-    let excluded = book::parse_excluded_fields(&read_or_exit("book.toml"));
+    let excluded = if Path::new("fmf.toml").exists() {
+        book::parse_excluded_fields(&read_or_exit("fmf.toml"))
+    } else {
+        Vec::new()
+    };
 
     let run_fm = cli.fm || !cli.html && !cli.links;
 
