@@ -54,6 +54,40 @@ pub fn check_includes(content: &str, file_dir: &Path) -> Vec<Diagnostic> {
     diags
 }
 
+#[must_use]
+pub fn check_links(content: &str, file_dir: &Path) -> Vec<Diagnostic> {
+    let mut diags = Vec::new();
+
+    for line in content.lines() {
+        // Match markdown links: [text](path)
+        let mut rest = line;
+        while let Some(start) = rest.find("](") {
+            rest = &rest[start + 2..];
+            let Some(end) = rest.find(')') else { break };
+            let target = &rest[..end];
+            rest = &rest[end + 1..];
+
+            // Skip external links and anchors
+            if target.starts_with("http") || target.starts_with('#') || target.is_empty() {
+                continue;
+            }
+
+            // Strip anchor from path
+            let path = target.split('#').next().unwrap_or(target);
+
+            let resolved = file_dir.join(path);
+            if !resolved.exists() {
+                diags.push(Diagnostic {
+                    code: "html::broken-link",
+                    message: format!("broken internal link: {target}"),
+                });
+            }
+        }
+    }
+
+    diags
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
