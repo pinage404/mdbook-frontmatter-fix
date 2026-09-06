@@ -2,6 +2,12 @@
 name = "mdbook-frontmatter-fix"
 version = "0.1.0"
 edition = "2024"
+description = "A linter and fixer for mdBook projects — validates frontmatter fields, HTML structure, and broken links with clippy-style diagnostics and auto-fix"
+license = "Apache-2.0"
+repository = "https://github.com/saylesss88/mdbook-frontmatter-fix"
+readme = "README.md"
+keywords = ["mdbook", "frontmatter", "linter", "validator", "markdown"]
+categories = ["command-line-utilities", "text-processing", "development-tools"]
 
 [dependencies]
 clap = {version = "4.6.6", features = ["derive"]}
