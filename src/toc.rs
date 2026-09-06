@@ -1,6 +1,6 @@
 #[must_use]
 pub fn generate_toc(content: &str) -> String {
-    let mut lines = Vec::new();
+    let mut entries = Vec::new();
 
     for line in content.lines() {
         let (level, title) = if line.starts_with("### ") {
@@ -10,16 +10,24 @@ pub fn generate_toc(content: &str) -> String {
         } else {
             continue;
         };
-
-        let anchor = title
-            .to_lowercase()
-            .replace(' ', "-")
-            .replace(|c: char| !c.is_alphanumeric() && c != '-', "");
-
-        let indent = "  ".repeat(level - 2);
-        lines.push(format!("{indent}- [{title}](#{anchor})"));
+        entries.push((level, title.to_string()));
     }
-    lines.join("\n")
+
+    let min_level = entries.iter().map(|(l, _)| l).min().copied().unwrap_or(2);
+
+    entries
+        .iter()
+        .map(|(level, title)| {
+            let anchor = title
+                .to_lowercase()
+                .replace(' ', "-")
+                .replace(|c: char| !c.is_alphanumeric() && c != '-', "");
+
+            let indent = "  ".repeat(level - min_level);
+            format!("{indent}- [{title}](#{anchor})")
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 #[must_use]
