@@ -10,6 +10,38 @@ pub fn parse_language(content: &str) -> String {
     "en".to_string()
 }
 
+#[must_use]
+pub fn parse_excluded_fields(content: &str) -> Vec<String> {
+    let mut in_fmf_section = false;
+    let mut excluded = Vec::new();
+
+    for line in content.lines() {
+        if line.trim() == "[preprocessor.fmf]" {
+            in_fmf_section = true;
+            continue;
+        }
+        if line.starts_with('[') {
+            in_fmf_section = false;
+        }
+        if in_fmf_section && line.trim().starts_with("exclude_fields") {
+            // parse: exclude_fields = ["author", "lang"]
+            if let Some(val) = line.split('=').nth(1) {
+                let fields: Vec<String> = val
+                    .trim()
+                    .trim_start_matches('[')
+                    .trim_end_matches(']')
+                    .split(',')
+                    .map(|s| s.trim().trim_matches('"').to_string())
+                    .filter(|s| !s.is_empty())
+                    .collect();
+                excluded.extend(fields);
+            }
+        }
+    }
+
+    excluded
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
