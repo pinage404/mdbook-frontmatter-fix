@@ -48,4 +48,14 @@ mod tests {
         assert_eq!(diags.len(), 1);
         assert_eq!(diags[0].code, "html::unclosed-summary");
     }
+
+    #[test]
+    fn broken_include_path_produces_diagnostic() {
+        let dir = tempfile::tempdir().unwrap();
+        let file_dir = dir.path();
+        let content = "{{#include ../nonexistent.rs}}\n";
+        let diags = check_includes(content, file_dir);
+        assert_eq!(diags.len(), 1);
+        assert_eq!(diags[0].code, "html::broken-include");
+    }
 }
