@@ -25,6 +25,10 @@ pub fn generate_toc(content: &str) -> String {
 #[must_use]
 pub fn inject_toc(content: &str) -> String {
     let toc = generate_toc(content);
+    if content.contains("## Table of Contents") {
+        return content.to_string();
+    }
+
     if toc.is_empty() {
         return content.to_string();
     }
