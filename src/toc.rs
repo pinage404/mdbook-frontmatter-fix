@@ -42,4 +42,16 @@ mod tests {
         assert!(toc.contains("- [First Section](#first-section)"));
         assert!(toc.contains("  - [Subsection](#subsection)"));
     }
+
+    #[test]
+    fn injects_toc_after_frontmatter() {
+        let content = "---\ntitle: Hello\n---\n\n## First Section\n\nContent.\n";
+        let result = inject_toc(content);
+        assert!(result.contains("## Table of Contents"));
+        assert!(result.contains("- [First Section](#first-section)"));
+        // TOC should come after frontmatter
+        let fm_end = result.find("---\n\n").unwrap();
+        let toc_pos = result.find("## Table of Contents").unwrap();
+        assert!(toc_pos > fm_end);
+    }
 }
