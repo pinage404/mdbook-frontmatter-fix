@@ -66,4 +66,11 @@ mod tests {
         let excluded = parse_excluded_fields(content);
         assert_eq!(excluded, vec!["author", "lang"]);
     }
+
+    #[test]
+    fn missing_fmf_section_returns_empty_excluded_fields() {
+        let content = "[book]\ntitle = \"My Book\"\n";
+        let excluded = parse_excluded_fields(content);
+        assert!(excluded.is_empty());
+    }
 }
