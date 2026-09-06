@@ -271,4 +271,12 @@ mod tests {
         assert!(result.contains("Some content."));
         assert!(!result.contains("title: Hello"));
     }
+
+    #[test]
+    fn strips_frontmatter_from_content() {
+        let content = "---\ntitle: Hello\nauthor: Jr\n---\n\nSome content.\n";
+        let stripped = mdbook_frontmatter_strip::strip_frontmatter(content);
+        assert_eq!(stripped, "Some content.\n");
+        assert!(!stripped.contains("---"));
+    }
 }
