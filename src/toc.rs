@@ -97,4 +97,12 @@ mod tests {
         // should not add a second TOC
         assert_eq!(result.matches("## Table of Contents").count(), 1);
     }
+
+    #[test]
+    fn generates_toc_with_h4() {
+        let content = "### Section\n\n#### Subsection\n\nContent.\n";
+        let toc = generate_toc(content);
+        assert!(toc.contains("- [Section](#section)"));
+        assert!(toc.contains("  - [Subsection](#subsection)"));
+    }
 }
