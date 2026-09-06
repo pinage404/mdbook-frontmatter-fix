@@ -36,6 +36,8 @@ fmf --strip                                  # strip fm from all chapters
 fmf --strip io/input_output.md               # strip fm from single file
 fmf --strip --dry-run                        # preview without writing
 fmf --edit io/input_output.md                # opens just the fm in $EDITOR
+fmf --toc io/input_output.md                 # generate table of contents for chapter
+fmf --toc                                    # generate toc for all chapters
 ```
 
 Exit code is `0` when clean, `1` when issues are found, CI friendly.
@@ -144,6 +146,33 @@ fmf --edit io/input_output.md
 
 Only the frontmatter block is shown, the chapter content stays out of view.
 Uses `$EDITOR` with a fallback to `vi`.
+
+## Table of contents
+
+Inject a table of contents into chapters based on their headings:
+
+```sh
+fmf --toc                            # inject TOC into all chapters
+fmf --toc io/input_output.md        # inject TOC into one chapter
+fmf --toc --dry-run                  # preview without writing
+```
+
+The TOC is inserted after the frontmatter block and before the chapter body.
+Headings `##`, `###`, and `####` are included; `#` (the chapter title) is
+skipped. Nesting is relative, if your chapter only uses `###`, entries appear
+flat with no indent:
+
+```markdown
+## Table of Contents
+
+- [The Basics](#the-basics)
+- [Accessing Arguments](#accessing-arguments)
+  - [Where This Leads](#where-this-leads)
+- [Further Reading](#further-reading)
+```
+
+Running `--toc` on a chapter that already has a `## Table of Contents` block
+is a no-op, it won't add a second one.
 
 ## Strip frontmatter
 
