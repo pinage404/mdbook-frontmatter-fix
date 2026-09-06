@@ -3,7 +3,9 @@ pub fn generate_toc(content: &str) -> String {
     let mut entries = Vec::new();
 
     for line in content.lines() {
-        let (level, title) = if line.starts_with("### ") {
+        let (level, title) = if line.starts_with("#### ") {
+            (4, line.trim_start_matches("#### ").trim())
+        } else if line.starts_with("### ") {
             (3, line.trim_start_matches("### ").trim())
         } else if line.starts_with("## ") {
             (2, line.trim_start_matches("## ").trim())
