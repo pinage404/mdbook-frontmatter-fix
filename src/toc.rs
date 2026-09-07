@@ -107,4 +107,13 @@ mod tests {
         assert!(toc.contains("- [Section](#section)"));
         assert!(toc.contains("  - [Subsection](#subsection)"));
     }
+
+    #[test]
+    fn strips_toc_block() {
+        let content = "---\ntitle: Hello\n---\n\n## Table of Contents\n\n- [First](#first)\n- [Second](#second)\n\n## First\n\nContent.\n";
+        let result = strip_toc(content);
+        assert!(!result.contains("## Table of Contents"));
+        assert!(result.contains("## First"));
+        assert!(result.contains("Content."));
+    }
 }
