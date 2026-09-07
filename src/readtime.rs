@@ -34,9 +34,13 @@ mod tests {
     }
 
     #[test]
-    fn injects_reading_time_into_frontmatter() {
-        let content = "---\ntitle: Hello\nauthor: Tom\n---\n\n".to_string() + &"word ".repeat(300);
-        let result = inject_reading_time(&content);
-        assert!(result.contains("reading_time: ~2 min read"));
+    fn injects_badge_after_frontmatter() {
+        let content = "---\ntitle: Hello\n---\n\n# Hello\n\nContent.\n";
+        let result = inject_reading_time(content);
+        assert!(result.contains("> ⏱"));
+        // badge should come after frontmatter
+        let fm_end = result.find("---\n\n").unwrap();
+        let badge_pos = result.find("> ⏱").unwrap();
+        assert!(badge_pos > fm_end);
     }
 }
