@@ -2,7 +2,9 @@ use std::{fs, path::Path};
 
 use clap::Parser;
 use mdbook_frontmatter_fix::fm::Frontmatter;
-use mdbook_frontmatter_fix::{book, comment, fm, git, html, overrides, summary, tags, toc};
+use mdbook_frontmatter_fix::{
+    book, comment, fm, git, html, overrides, readtime, summary, tags, toc,
+};
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Parser)]
@@ -51,6 +53,10 @@ struct Cli {
 
     #[arg(long)]
     comment: bool,
+
+    /// Inject estimated reading time into chapter frontmatter
+    #[arg(long)]
+    readtime: bool,
 }
 
 fn read_or_exit(path: &str) -> String {
@@ -80,6 +86,16 @@ fn handle_file_command(cli: &Cli, comment_config: &comment::CommentConfig) {
         std::process::exit(1);
     };
     let mut current = content;
+
+    if cli.readtime {
+        let result = readtime::inject_reading_time(&current);
+        if cli.dry_run {
+            eprintln!("would inject reading time into: {full_path}");
+        } else {
+            write_fixed(&full_path, result);
+        }
+        return;
+    }
 
     if cli.strip {
         let mut current = current.clone();
@@ -301,6 +317,23 @@ fn main() {
             let result = comment::inject_comment_block_with_config(&content, &comment_config);
             if cli.dry_run {
                 eprintln!("would inject comment block into: {full_path}");
+            } else {
+                write_fixed(&full_path, result);
+            }
+        }
+        return;
+    }
+
+    if cli.readtime {
+        for path in &paths {
+            let full_path = format!("src/{path}");
+            let Ok(content) = fs::read_to_string(&full_path) else {
+                eprintln!("error: could not read {full_path}");
+                continue;
+            };
+            let result = readtime::inject_reading_time(&content);
+            if cli.dry_run {
+                eprintln!("would inject reading time into: {full_path}");
             } else {
                 write_fixed(&full_path, result);
             }

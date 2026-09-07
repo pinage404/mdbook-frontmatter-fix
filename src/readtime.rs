@@ -1,12 +1,14 @@
 /// Average adult reading speed in words per minute.
 const WPM: usize = 200;
 
+#[must_use]
 pub fn estimate_reading_time(content: &str) -> usize {
     let words = content.split_whitespace().count();
     let mins = words.div_ceil(WPM);
     mins.max(1) // minimum 1 minute
 }
 
+#[must_use]
 pub fn inject_reading_time(content: &str) -> String {
     if content.contains("reading_time:") {
         return content.to_string();
