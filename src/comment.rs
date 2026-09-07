@@ -1,5 +1,8 @@
 #[must_use]
 pub fn inject_comment_block(content: &str) -> String {
+    if content.contains("<summary>Comments</summary>") {
+        return content.to_string();
+    }
     let block = "\n\n<details>\n<summary>Comments</summary>\n\n<!-- Add your questions or comments below -->\n\n</details>\n";
     format!("{content}{block}")
 }
