@@ -1,8 +1,8 @@
 [package]
 name = "mdbook-frontmatter-fix"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2024"
-description = "A linter and fixer for mdBook projects: validates frontmatter fields, HTML structure, and broken links with clippy-style diagnostics and auto-fix"
+description = "A linter and injector for mdBook projects: validates frontmatter fields, HTML structure, and broken links with clippy-style diagnostics and auto-fix"
 license = "Apache-2.0"
 repository = "https://github.com/saylesss88/mdbook-frontmatter-fix"
 readme = "README.md"
@@ -23,3 +23,24 @@ tempfile = {version = "3", default-features = false}
 [[bin]]
 name = "fmf"
 path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
+
+[lints.rust]
+unsafe_code = "forbid"
+future_incompatible = {level = "warn", priority = -1}
+nonstandard_style = {level = "warn", priority = -1}
+rust_2018_idioms = {level = "warn", priority = -1}
+
+[lints.clippy]
+all = {level = "warn", priority = -1}
+pedantic = {level = "warn", priority = -1}
+todo = "warn"
+dbg_macro = "warn"
+unwrap_used = "warn"
+# expect_used = "warn"
