@@ -271,6 +271,10 @@ fn main() {
 
     if cli.comment {
         for path in &paths {
+            // skip README
+            if path == "README.md" {
+                continue;
+            }
             let full_path = format!("src/{path}");
             let Ok(content) = fs::read_to_string(&full_path) else {
                 eprintln!("error: could not read {full_path}");
