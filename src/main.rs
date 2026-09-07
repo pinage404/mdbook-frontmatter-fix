@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::{fs, path::Path};
+use std::{env, fs, path::Path, process};
 
 use clap::Parser;
 use mdbook_frontmatter_fix::fm::Frontmatter;
@@ -14,47 +14,35 @@ struct Cli {
     /// Check frontmatter fields only
     #[arg(long)]
     fm: bool,
-
     /// Check HTML structure only
     #[arg(long)]
     html: bool,
-
     /// Automatically fix issues where possible
     #[arg(long)]
     fix: bool,
-
     /// Show what would be fixed without writing to disk
     #[arg(long)]
     dry_run: bool,
-
     /// Override a frontmatter field (e.g. --set title="My Title")
     #[arg(long, value_name = "KEY=VALUE")]
     set: Vec<String>,
-
     /// Add a tag to a specific file
     #[arg(long, value_name = "TAG")]
     tag: Vec<String>,
-
     /// Target file for --set and --tag overrides
     #[arg(value_name = "FILE")]
     file: Option<String>,
-
     /// Check include paths and internal links
     #[arg(long)]
     links: bool,
-
     #[arg(long)]
     edit: bool,
-
     #[arg(long)]
     strip: bool,
-
     #[arg(long)]
     toc: bool,
-
     #[arg(long)]
     comment: bool,
-
     /// Inject estimated reading time into chapter frontmatter
     #[arg(long)]
     readtime: bool,
@@ -63,7 +51,7 @@ struct Cli {
 fn read_or_exit(path: &str) -> String {
     fs::read_to_string(path).unwrap_or_else(|_| {
         eprintln!("error: could not read {path}");
-        std::process::exit(1);
+        process::exit(1);
     })
 }
 
@@ -84,7 +72,7 @@ fn handle_file_command(cli: &Cli, comment_config: &comment::CommentConfig) {
     let full_path = format!("src/{file}");
     let Ok(content) = fs::read_to_string(&full_path) else {
         eprintln!("error: could not read {full_path}");
-        std::process::exit(1);
+        process::exit(1);
     };
     let mut current = content;
 
@@ -128,9 +116,7 @@ fn handle_file_command(cli: &Cli, comment_config: &comment::CommentConfig) {
     }
 
     if cli.comment {
-        eprintln!("debug content len: {}", current.len());
         let result = comment::inject_comment_block_with_config(&current, comment_config);
-        eprintln!("debug results len: {}", result.len());
         if cli.dry_run {
             eprintln!("would inject comment block into: {full_path}");
         } else {
@@ -142,12 +128,12 @@ fn handle_file_command(cli: &Cli, comment_config: &comment::CommentConfig) {
     if cli.edit {
         let fm_block = fm::extract_frontmatter(&current).unwrap_or_else(|| {
             eprintln!("error: no frontmatter found in {full_path}");
-            std::process::exit(1);
+            process::exit(1);
         });
-        let tmp = std::env::temp_dir().join("fmf_edit.yaml");
+        let tmp = env::temp_dir().join("fmf_edit.yaml");
         fs::write(&tmp, &fm_block).expect("failed to write temp file");
-        let editor = std::env::var("EDITOR").unwrap_or_else(|_| "vi".to_string());
-        std::process::Command::new(&editor)
+        let editor = env::var("EDITOR").unwrap_or_else(|_| "vi".to_string());
+        process::Command::new(&editor)
             .arg(&tmp)
             .status()
             .expect("failed to open editor");
@@ -186,9 +172,7 @@ fn apply_fixes(
     diags: &[fm::Diagnostic],
     opts: &FixOptions<'_>,
 ) {
-    let mut current = content.to_string();
-
-    if has_diag(diags, "fm::missing-frontmatter") {
+    let mut current = if has_diag(diags, "fm::missing-frontmatter") {
         let abs_path = Path::new(full_path).canonicalize().unwrap();
         let commit = git::file_commit_info(&abs_path, "%Y-%m-%d", false)
             .ok()
@@ -198,8 +182,7 @@ fn apply_fixes(
             .split('/')
             .next_back()
             .unwrap_or("untitled");
-
-        current = fm::fix_frontmatter(
+        fm::fix_frontmatter(
             content,
             &Frontmatter {
                 title,
@@ -216,9 +199,10 @@ fn apply_fixes(
                     tags::infer_tags(path)
                 },
             },
-        );
-    }
-
+        )
+    } else {
+        content.to_string()
+    };
     if has_diag(diags, "fm::missing-lang") {
         current = fm::fix_missing_lang(&current, opts.lang);
     }
@@ -247,7 +231,7 @@ fn main() {
 
     if !Path::new("book.toml").exists() {
         eprintln!("error: no book.toml found. Run mf from your book root");
-        std::process::exit(1);
+        process::exit(1);
     }
 
     let lang = book::parse_language(&read_or_exit("book.toml"));
@@ -399,6 +383,6 @@ fn main() {
         println!("fmf: no issues found");
     } else {
         eprintln!("\nfmf: {total} issue(s) found");
-        std::process::exit(1);
+        process::exit(1);
     }
 }
