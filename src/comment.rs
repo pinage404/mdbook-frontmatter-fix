@@ -12,6 +12,7 @@ pub struct CommentConfig {
     pub style: CommentStyle,
 }
 
+#[must_use]
 pub fn inject_comment_block_with_config(content: &str, config: &CommentConfig) -> String {
     if content.contains("<summary>Comments</summary>") {
         return content.to_string();
@@ -47,13 +48,15 @@ pub fn inject_comment_block_with_config(content: &str, config: &CommentConfig) -
 
 #[must_use]
 pub fn inject_comment_block(content: &str) -> String {
-    if content.contains("<summary>Comments</summary>") {
-        return content.to_string();
-    }
-    let block = "\n\n<details>\n<summary>Comments</summary>\n\n<!-- Add your questions or comments below -->\n\n</details>\n";
-    format!("{content}{block}")
+    inject_comment_block_with_config(
+        content,
+        &CommentConfig {
+            style: CommentStyle::Plain,
+        },
+    )
 }
 
+#[must_use]
 pub fn parse_comment_config(content: &str) -> CommentConfig {
     let get = |key: &str| -> String {
         content
@@ -65,6 +68,7 @@ pub fn parse_comment_config(content: &str) -> CommentConfig {
     };
 
     let style = get("comment_style");
+    eprintln!("debug style: '{style}'");
     if style == "giscus" {
         return CommentConfig {
             style: CommentStyle::Giscus {
@@ -130,7 +134,7 @@ mod tests {
                 assert_eq!(repo, "saylesss88/rust-gaps");
                 assert_eq!(repo_id, "R_kgDO123");
             }
-            _ => panic!("expected Giscus style"),
+            CommentStyle::Plain => panic!("expected Giscus style"),
         }
     }
 }

@@ -71,7 +71,7 @@ fn has_diag(diags: &[fm::Diagnostic], code: &str) -> bool {
     diags.iter().any(|d| d.code == code)
 }
 
-fn handle_file_command(cli: &Cli) {
+fn handle_file_command(cli: &Cli, comment_config: &comment::CommentConfig) {
     let Some(ref file) = cli.file else { return };
     let file = file.trim_start_matches("src/");
     let full_path = format!("src/{file}");
@@ -92,7 +92,9 @@ fn handle_file_command(cli: &Cli) {
     }
 
     if cli.comment {
-        let result = comment::inject_comment_block(&current);
+        eprintln!("debug content len: {}", current.len());
+        let result = comment::inject_comment_block_with_config(&current, comment_config);
+        eprintln!("debug results len: {}", result.len());
         if cli.dry_run {
             eprintln!("would inject comment block into: {full_path}");
         } else {
@@ -218,14 +220,16 @@ fn main() {
 
     let lang = book::parse_language(&read_or_exit("book.toml"));
 
-    let excluded = if Path::new("fmf.toml").exists() {
-        book::parse_excluded_fields(&read_or_exit("fmf.toml"))
+    let fmf_content = if Path::new("fmf.toml").exists() {
+        read_or_exit("fmf.toml")
     } else {
-        Vec::new()
+        String::new()
     };
+    let excluded = book::parse_excluded_fields(&fmf_content);
+    let comment_config = comment::parse_comment_config(&fmf_content);
 
     if cli.file.is_some() {
-        handle_file_command(&cli);
+        handle_file_command(&cli, &comment_config);
         return;
     }
 
@@ -272,7 +276,7 @@ fn main() {
                 eprintln!("error: could not read {full_path}");
                 continue;
             };
-            let result = comment::inject_comment_block(&content);
+            let result = comment::inject_comment_block_with_config(&content, &comment_config);
             if cli.dry_run {
                 eprintln!("would inject comment block into: {full_path}");
             } else {
