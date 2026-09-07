@@ -299,6 +299,25 @@ multilingual support (skip `lang`).
 
 All fields are required by default when no `fmf.toml` is present.
 
+### Custom field injection
+
+Any fields under `[inject]` in `fmf.toml` are automatically added to every
+chapter's frontmatter when running `--fix`:
+
+```toml
+[inject]
+status = "draft"
+version = "1.0"
+license = "MIT"
+```
+
+```toml
+[inject]
+feed = "exclude"
+```
+
+Fields that already exist in a chapter's frontmatter are left untouched.
+
 ## How tags are inferred
 
 Tags come from the directory segments between `src/` and the filename:
