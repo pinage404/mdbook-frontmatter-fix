@@ -308,13 +308,18 @@ chapter's frontmatter when running `--fix`:
 [inject]
 status = "draft"
 version = "1.0"
-license = "MIT"
+license = "Apache-2.0"
 ```
 
-```toml
-[inject]
-feed = "exclude"
+Produces the following frontmatter:
+
+```yaml
+---
+status: draft
+license: Apache-2.0
+---
 ```
+
 
 Fields that already exist in a chapter's frontmatter are left untouched.
 
