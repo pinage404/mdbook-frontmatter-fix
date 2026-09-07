@@ -54,6 +54,32 @@ pub fn inject_comment_block(content: &str) -> String {
     format!("{content}{block}")
 }
 
+pub fn parse_comment_config(content: &str) -> CommentConfig {
+    let get = |key: &str| -> String {
+        content
+            .lines()
+            .find(|l| l.starts_with(key))
+            .and_then(|l| l.split('=').nth(1))
+            .map(|v| v.trim().trim_matches('"').to_string())
+            .unwrap_or_default()
+    };
+
+    let style = get("comment_style");
+    if style == "giscus" {
+        return CommentConfig {
+            style: CommentStyle::Giscus {
+                repo: get("giscus_repo"),
+                repo_id: get("giscus_repo_id"),
+                category: get("giscus_category"),
+                category_id: get("giscus_category_id"),
+            },
+        };
+    }
+
+    CommentConfig {
+        style: CommentStyle::Plain,
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;
