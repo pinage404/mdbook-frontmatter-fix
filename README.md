@@ -14,10 +14,9 @@ warning[html::unclosed-details]: unclosed <details> block
 fmv: 2 issue(s) found
 ```
 
-
 Auto-inject frontmatter from git history, generate tables of contents, add
-collapsible Giscus comment widgets, override individual fields, and edit
-frontmatter in your `$EDITOR`, all from a single CLI tool.
+collapsible Giscus comment widgets, override individual fields, add estimated
+readtimes, and edit frontmatter in your `$EDITOR`, all from a single CLI tool.
 
 ## Installation
 
@@ -256,6 +255,31 @@ To remove comment blocks:
 fmf --strip --comment                # all chapters
 fmf --strip --comment io/input_output.md  # one file
 ```
+
+---
+
+## Reading time
+
+Inject an estimated reading time into chapter frontmatter:
+
+```sh
+fmf --readtime                       # inject into all chapters
+fmf --readtime io/input_output.md   # inject into one chapter
+fmf --readtime --dry-run             # preview without writing
+```
+
+Adds a `reading_time` field based on word count at 200 words per minute:
+
+```yaml
+---
+title: Input and Output
+author: Jr
+date: 2026-09-03
+reading_time: ~7 min read
+---
+```
+
+Chapters that already have a `reading_time` field are left untouched.
 
 ---
 
