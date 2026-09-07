@@ -226,6 +226,140 @@ fn apply_fixes(
     }
 }
 
+fn try_execute_transformations(
+    cli: &Cli,
+    paths: &[String],
+    comment_config: &comment::CommentConfig,
+) -> bool {
+    if cli.strip {
+        process_paths(paths, cli.dry_run, "strip from", &[], |content| {
+            let mut curr = content.to_string();
+            if !cli.toc && !cli.comment {
+                curr = mdbook_frontmatter_strip::strip_frontmatter(&curr);
+            }
+            if cli.toc {
+                curr = toc::strip_toc(&curr);
+            }
+            if cli.comment {
+                curr = comment::strip_comment_block(&curr);
+            }
+            curr
+        });
+        return true;
+    }
+
+    if cli.toc {
+        process_paths(paths, cli.dry_run, "inject TOC into", &[], |c| {
+            toc::inject_toc(c)
+        });
+        return true;
+    }
+
+    if cli.comment {
+        process_paths(paths, cli.dry_run, "inject comment block into", &[], |c| {
+            comment::inject_comment_block_with_config(c, comment_config)
+        });
+        return true;
+    }
+
+    if cli.readtime {
+        process_paths(paths, cli.dry_run, "inject reading time into", &[], |c| {
+            readtime::inject_reading_time(c)
+        });
+        return true;
+    }
+
+    false
+}
+
+fn process_paths<F>(
+    paths: &[String],
+    dry_run: bool,
+    action_msg: &str,
+    skip: &[&str],
+    mut transform: F,
+) where
+    F: FnMut(&str) -> String,
+{
+    for path in paths {
+        if skip.contains(&path.as_str()) {
+            continue;
+        }
+        let full_path = format!("src/{path}");
+        let Ok(content) = fs::read_to_string(&full_path) else {
+            eprintln!("error: could not read {full_path}");
+            continue;
+        };
+
+        let result = transform(&content);
+        if dry_run {
+            eprintln!("would {action_msg}: {full_path}");
+        } else {
+            write_fixed(&full_path, result);
+        }
+    }
+}
+
+fn run_diagnostics_and_lints(
+    cli: &Cli,
+    paths: &[String],
+    lang: &str,
+    excluded: &[String],
+    injected_fields: &HashMap<String, String>,
+) {
+    let run_fm = cli.fm || !cli.html && !cli.links;
+    let run_html = cli.html || !cli.fm && !cli.links;
+    let run_links = cli.links || !cli.fm && !cli.html;
+    let mut total = 0;
+
+    for path in paths {
+        let full_path = format!("src/{path}");
+        let Ok(content) = fs::read_to_string(&full_path) else {
+            eprintln!("error: could not read {full_path}");
+            continue;
+        };
+
+        let mut diags = Vec::new();
+        if run_fm {
+            diags.extend(fm::check_frontmatter(&content, excluded));
+        }
+        if run_html {
+            diags.extend(html::check_html(&content));
+        }
+        if run_links {
+            let file_dir = Path::new(&full_path)
+                .parent()
+                .unwrap_or_else(|| Path::new("src"));
+            diags.extend(html::check_includes(&content, file_dir));
+            diags.extend(html::check_links(&content, file_dir));
+        }
+
+        for diag in &diags {
+            eprintln!(
+                "warning[{}]: {}\n  --> src/{}",
+                diag.code, diag.message, path
+            );
+            total += 1;
+        }
+
+        if cli.fix || cli.dry_run {
+            let fix_opts = FixOptions {
+                lang,
+                excluded,
+                inject_fields: injected_fields,
+            };
+            apply_fixes(cli, path, &full_path, &content, &diags, &fix_opts);
+        }
+    }
+
+    if total == 0 {
+        println!("fmf: no issues found");
+    } else {
+        eprintln!("\nfmf: {total} issue(s) found");
+        process::exit(1);
+    }
+}
+
 fn main() {
     let cli = Cli::parse();
 
@@ -252,137 +386,9 @@ fn main() {
 
     let paths = summary::parse_summary(&read_or_exit("src/SUMMARY.md"));
 
-    if cli.strip {
-        for path in &paths {
-            let full_path = format!("src/{path}");
-            let Ok(content) = fs::read_to_string(&full_path) else {
-                eprintln!("error: could not read {full_path}");
-                continue;
-            };
-            let mut current = content;
-            if !cli.toc && !cli.comment {
-                current = mdbook_frontmatter_strip::strip_frontmatter(&current);
-            }
-            if cli.toc {
-                current = toc::strip_toc(&current);
-            }
-            if cli.comment {
-                current = comment::strip_comment_block(&current);
-            }
-            if cli.dry_run {
-                eprintln!("would strip from: {full_path}");
-            } else {
-                write_fixed(&full_path, current);
-            }
-        }
+    if try_execute_transformations(&cli, &paths, &comment_config) {
         return;
     }
 
-    if cli.toc {
-        for path in &paths {
-            let full_path = format!("src/{path}");
-            let Ok(content) = fs::read_to_string(&full_path) else {
-                eprintln!("error: could not read {full_path}");
-                continue;
-            };
-            let result = toc::inject_toc(&content);
-            if cli.dry_run {
-                eprintln!("would inject TOC into: {full_path}");
-            } else {
-                write_fixed(&full_path, result);
-            }
-        }
-        return;
-    }
-
-    if cli.comment {
-        for path in &paths {
-            // skip README
-            if path == "README.md" {
-                continue;
-            }
-            let full_path = format!("src/{path}");
-            let Ok(content) = fs::read_to_string(&full_path) else {
-                eprintln!("error: could not read {full_path}");
-                continue;
-            };
-            let result = comment::inject_comment_block_with_config(&content, &comment_config);
-            if cli.dry_run {
-                eprintln!("would inject comment block into: {full_path}");
-            } else {
-                write_fixed(&full_path, result);
-            }
-        }
-        return;
-    }
-
-    if cli.readtime {
-        for path in &paths {
-            let full_path = format!("src/{path}");
-            let Ok(content) = fs::read_to_string(&full_path) else {
-                eprintln!("error: could not read {full_path}");
-                continue;
-            };
-            let result = readtime::inject_reading_time(&content);
-            if cli.dry_run {
-                eprintln!("would inject reading time into: {full_path}");
-            } else {
-                write_fixed(&full_path, result);
-            }
-        }
-        return;
-    }
-
-    let run_fm = cli.fm || !cli.html && !cli.links;
-    let run_html = cli.html || !cli.fm && !cli.links;
-    let run_links = cli.links || !cli.fm && !cli.html;
-    let mut total = 0;
-
-    for path in &paths {
-        let full_path = format!("src/{path}");
-        let Ok(content) = fs::read_to_string(&full_path) else {
-            eprintln!("error: could not read {full_path}");
-            continue;
-        };
-
-        let mut diags = Vec::new();
-        if run_fm {
-            diags.extend(fm::check_frontmatter(&content, &excluded));
-        }
-        if run_html {
-            diags.extend(html::check_html(&content));
-        }
-        if run_links {
-            let file_dir = Path::new(&full_path)
-                .parent()
-                .unwrap_or_else(|| Path::new("src"));
-            diags.extend(html::check_includes(&content, file_dir));
-            diags.extend(html::check_links(&content, file_dir));
-        }
-
-        for diag in &diags {
-            eprintln!(
-                "warning[{}]: {}\n  --> src/{}",
-                diag.code, diag.message, path
-            );
-            total += 1;
-        }
-
-        let fix_opts = FixOptions {
-            lang: &lang,
-            excluded: &excluded,
-            inject_fields: &injected_fields,
-        };
-
-        if cli.fix || cli.dry_run {
-            apply_fixes(&cli, path, &full_path, &content, &diags, &fix_opts);
-        }
-    }
-
-    if total == 0 {
-        println!("fmf: no issues found");
-    } else {
-        eprintln!("\nfmf: {total} issue(s) found");
-        process::exit(1);
-    }
+    run_diagnostics_and_lints(&cli, &paths, &lang, &excluded, &injected_fields);
 }
