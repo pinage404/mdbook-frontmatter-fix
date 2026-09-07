@@ -30,4 +30,21 @@ mod tests {
         let result = inject_comment_block(content);
         assert_eq!(result.matches("<details>").count(), 1);
     }
+
+    #[test]
+    fn generates_giscus_block() {
+        let config = CommentConfig {
+            style: CommentStyle::Giscus {
+                repo: "saylesss88/rust-gaps".to_string(),
+                repo_id: "R_kgDO123".to_string(),
+                category: "Comments".to_string(),
+                category_id: "DIC_kwDO123".to_string(),
+            },
+        };
+        let content = "---\ntitle: Hello\n---\n\n# Hello\n\nContent.\n";
+        let result = inject_comment_block_with_config(content, &config);
+        assert!(result.contains("giscus.app/client.js"));
+        assert!(result.contains("saylesss88/rust-gaps"));
+        assert!(result.contains("<details>"));
+    }
 }
