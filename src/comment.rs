@@ -94,4 +94,17 @@ mod tests {
         assert!(result.contains("saylesss88/rust-gaps"));
         assert!(result.contains("<details>"));
     }
+
+    #[test]
+    fn parses_giscus_config_from_fmf_toml() {
+        let content = "comment_style = \"giscus\"\ngiscus_repo = \"saylesss88/rust-gaps\"\ngiscus_repo_id = \"R_kgDO123\"\ngiscus_category = \"Comments\"\ngiscus_category_id = \"DIC_kwDO123\"\n";
+        let config = parse_comment_config(content);
+        match config.style {
+            CommentStyle::Giscus { repo, repo_id, .. } => {
+                assert_eq!(repo, "saylesss88/rust-gaps");
+                assert_eq!(repo_id, "R_kgDO123");
+            }
+            _ => panic!("expected Giscus style"),
+        }
+    }
 }
