@@ -1,3 +1,9 @@
+#[must_use]
+pub fn inject_comment_block(content: &str) -> String {
+    let block = "\n\n<details>\n<summary>Comments</summary>\n\n<!-- Add your questions or comments below -->\n\n</details>\n";
+    format!("{content}{block}")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
