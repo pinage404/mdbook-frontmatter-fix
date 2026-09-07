@@ -242,11 +242,20 @@ fn main() {
                 eprintln!("error: could not read {full_path}");
                 continue;
             };
-            let stripped = mdbook_frontmatter_strip::strip_frontmatter(&content);
+            let mut current = content;
+            if !cli.toc && !cli.comment {
+                current = mdbook_frontmatter_strip::strip_frontmatter(&current);
+            }
+            if cli.toc {
+                current = toc::strip_toc(&current);
+            }
+            if cli.comment {
+                current = comment::strip_comment_block(&current);
+            }
             if cli.dry_run {
-                eprintln!("would strip frontmatter from: {full_path}");
+                eprintln!("would strip from: {full_path}");
             } else {
-                write_fixed(&full_path, stripped);
+                write_fixed(&full_path, current);
             }
         }
         return;
