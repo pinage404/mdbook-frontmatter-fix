@@ -137,4 +137,13 @@ mod tests {
             CommentStyle::Plain => panic!("expected Giscus style"),
         }
     }
+
+    #[test]
+    fn strips_comment_block() {
+        let content = "---\ntitle: Hello\n---\n\n# Hello\n\nContent.\n\n<details>\n<summary>Comments</summary>\n\n<!-- Add your questions or comments below -->\n\n</details>\n";
+        let result = strip_comment_block(content);
+        assert!(!result.contains("<details>"));
+        assert!(!result.contains("<summary>Comments</summary>"));
+        assert!(result.contains("Content."));
+    }
 }
