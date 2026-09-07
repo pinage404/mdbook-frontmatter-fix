@@ -1,3 +1,65 @@
+## [0.4.0] - 2026-09-07
+
+### 🚀 Features
+
+- *(comment)* Add inject_comment_block to append collapsible comments section
+- *(comment)* Skip injection if comment block already exists
+- *(main)* Wire in --comment, add to Cli struct
+- *(comment)* Add CommentConfig inject_comment_block_with_config with Giscus support
+- *(comment)* Add parse_comment_config to read Giscus settings from fmf.toml
+- *(toc)* Add strip_toc to strip toc out of chapters
+- *(comment)* Add strip_comment_block to strip injected Comments blocks
+- *(main)* Tie in new strip commands
+- *(main)* Enable --strip --toc and --strip --comment on individual files
+- *(readtime)* Add estimate_reading_time using ceiling division at 200 wpm
+- *(readtime)* Add function to inject readtime estimates into chapters
+- *(main)* Tie in readtime
+- *(book)* Add parse_inject_fields to parse & inject custom fields from fmf.toml
+- *(main)* Add injected fields
+
+### 🐛 Bug Fixes
+
+- *(main)* Skip injecting Comments block into README.md
+- *(main)* Check --strip before --toc & --comment in handle_file_command
+- *(fm)* Add newline after tags: key in fix_frontmatter
+- *(main)* Chain fixes on mutable current to prevent multiple writes and clobbering
+- *(readtime)* Inject readtime badge after fm rather than in it
+- *(main)* Typo
+
+### 🚜 Refactor
+
+- *(main)* Make struct for apply_fixes
+
+### 🧪 Testing
+
+- *(comment)* Failing test for injecting comment block at end of chapter
+- *(comment)* Skip injection if comment block exists
+- *(comment)* Generate github giscus style block
+- *(comment)* Parse Giscus config fields in book.rs
+- *(toc)* --strip toc
+- *(comment)* Strip comment blocks
+- *(readtime)* Add inject readtime test
+- *(book)* Parse custom inject fields in fmf.toml
+- *(readtime)* Inject readtime badge after frontmatter
+
+### ⚙️ Miscellaneous Tasks
+
+- Layout comment module scaffolding
+- README edits
+- Add readtime module scaffold
+- README edits
+- README edits
+- Prune features
+- Fix clippy lints
+- README edits
+- README edits
+- Update Cargo.toml with release profile and lint config
+- Allow unwrap in unit tests
+
+### 💼 Other
+
+- CHANGELOG
+- *(comment)* Injecting comment block was truncating the end of the file
 ## [0.3.0] - 2026-09-06
 
 ### 🚀 Features
