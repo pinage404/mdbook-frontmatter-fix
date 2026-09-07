@@ -1,3 +1,50 @@
+pub enum CommentStyle {
+    Plain,
+    Giscus {
+        repo: String,
+        repo_id: String,
+        category: String,
+        category_id: String,
+    },
+}
+
+pub struct CommentConfig {
+    pub style: CommentStyle,
+}
+
+pub fn inject_comment_block_with_config(content: &str, config: &CommentConfig) -> String {
+    if content.contains("<summary>Comments</summary>") {
+        return content.to_string();
+    }
+
+    let inner = match &config.style {
+        CommentStyle::Plain => "<!-- Add your questions or comments below -->\n".to_string(),
+        CommentStyle::Giscus {
+            repo,
+            repo_id,
+            category,
+            category_id,
+        } => {
+            format!(
+                r#"<script src="https://giscus.app/client.js"
+    data-repo="{repo}"
+    data-repo-id="{repo_id}"
+    data-category="{category}"
+    data-category-id="{category_id}"
+    data-mapping="pathname"
+    data-theme="dark"
+    crossorigin="anonymous"
+    async>
+</script>
+"#
+            )
+        }
+    };
+
+    let block = format!("\n\n<details>\n<summary>Comments</summary>\n\n{inner}\n</details>\n");
+    format!("{content}{block}")
+}
+
 #[must_use]
 pub fn inject_comment_block(content: &str) -> String {
     if content.contains("<summary>Comments</summary>") {
