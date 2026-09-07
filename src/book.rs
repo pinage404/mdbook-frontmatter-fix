@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 #[must_use]
 pub fn parse_language(content: &str) -> String {
     for line in content.lines() {
@@ -27,6 +29,30 @@ pub fn parse_excluded_fields(content: &str) -> Vec<String> {
         }
     }
     Vec::new()
+}
+
+#[must_use]
+pub fn parse_inject_fields(content: &str) -> HashMap<String, String> {
+    let mut fields = HashMap::new();
+    let mut in_inject = false;
+
+    for line in content.lines() {
+        if line.trim() == "[inject]" {
+            in_inject = true;
+            continue;
+        }
+        if line.starts_with('[') {
+            in_inject = false;
+        }
+        if in_inject && let Some((key, value)) = line.split_once('=') {
+            fields.insert(
+                key.trim().to_string(),
+                value.trim().trim_matches('"').to_string(),
+            );
+        }
+    }
+
+    fields
 }
 
 #[cfg(test)]
