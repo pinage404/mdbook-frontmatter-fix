@@ -186,6 +186,8 @@ fn apply_fixes(
     diags: &[fm::Diagnostic],
     opts: &FixOptions<'_>,
 ) {
+    let mut current = content.to_string();
+
     if has_diag(diags, "fm::missing-frontmatter") {
         let abs_path = Path::new(full_path).canonicalize().unwrap();
         let commit = git::file_commit_info(&abs_path, "%Y-%m-%d", false)
@@ -197,7 +199,7 @@ fn apply_fixes(
             .next_back()
             .unwrap_or("untitled");
 
-        let fixed = fm::fix_frontmatter(
+        current = fm::fix_frontmatter(
             content,
             &Frontmatter {
                 title,
@@ -215,39 +217,27 @@ fn apply_fixes(
                 },
             },
         );
-        if cli.dry_run {
-            eprintln!("would fix: {full_path}\n{fixed}");
-        } else {
-            write_fixed(full_path, fixed);
-        }
     }
 
     if has_diag(diags, "fm::missing-lang") {
-        let fixed = fm::fix_missing_lang(content, opts.lang);
-        if cli.dry_run {
-            eprintln!("would fix: {full_path}\n{fixed}");
-        } else {
-            write_fixed(full_path, fixed);
-        }
+        current = fm::fix_missing_lang(&current, opts.lang);
     }
 
     if has_diag(diags, "fm::missing-tags") {
-        let content = fs::read_to_string(full_path).unwrap_or_default();
-        let fixed = fm::fix_missing_tags(&content, &tags::infer_tags(path));
-        if cli.dry_run {
-            eprintln!("would fix: {full_path}\n{fixed}");
-        } else {
-            write_fixed(full_path, fixed);
+        current = fm::fix_missing_tags(&current, &tags::infer_tags(path));
+    }
+
+    for (key, value) in opts.inject_fields {
+        if !current.contains(&format!("{key}:")) {
+            current = overrides::apply_override(&current, key, value);
         }
     }
-    for (key, value) in opts.inject_fields {
-        if !content.contains(&format!("{key}:")) {
-            let fixed = overrides::apply_override(content, key, value);
-            if cli.dry_run {
-                eprintln!("would inject {key}: {value} into {full_path}");
-            } else {
-                write_fixed(full_path, fixed);
-            }
+
+    if current != content {
+        if cli.dry_run {
+            eprintln!("would fix: {full_path}");
+        } else {
+            write_fixed(full_path, current);
         }
     }
 }
