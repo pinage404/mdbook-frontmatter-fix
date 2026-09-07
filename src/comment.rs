@@ -88,8 +88,10 @@ pub fn parse_comment_config(content: &str) -> CommentConfig {
 #[must_use]
 pub fn strip_comment_block(content: &str) -> String {
     if !content.contains("<summary>Comments</summary>") {
+        eprintln!("debug: no comment block found");
         return content.to_string();
     }
+    eprintln!("debug: found comment block, stripping");
 
     let mut result = Vec::new();
     let mut in_block = false;

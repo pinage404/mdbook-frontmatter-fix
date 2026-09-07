@@ -81,6 +81,25 @@ fn handle_file_command(cli: &Cli, comment_config: &comment::CommentConfig) {
     };
     let mut current = content;
 
+    if cli.strip {
+        let mut current = current.clone();
+        if !cli.toc && !cli.comment {
+            current = mdbook_frontmatter_strip::strip_frontmatter(&current);
+        }
+        if cli.toc {
+            current = toc::strip_toc(&current);
+        }
+        if cli.comment {
+            current = comment::strip_comment_block(&current);
+        }
+        if cli.dry_run {
+            eprintln!("would strip from: {full_path}");
+        } else {
+            write_fixed(&full_path, current);
+        }
+        return;
+    }
+
     if cli.toc {
         let result = toc::inject_toc(&current);
         if cli.dry_run {
@@ -99,25 +118,6 @@ fn handle_file_command(cli: &Cli, comment_config: &comment::CommentConfig) {
             eprintln!("would inject comment block into: {full_path}");
         } else {
             write_fixed(&full_path, result);
-        }
-        return;
-    }
-
-    if cli.strip {
-        let mut current = current.clone();
-        if !cli.toc && !cli.comment {
-            current = mdbook_frontmatter_strip::strip_frontmatter(&current);
-        }
-        if cli.toc {
-            current = toc::strip_toc(&current);
-        }
-        if cli.comment {
-            current = comment::strip_comment_block(&current);
-        }
-        if cli.dry_run {
-            eprintln!("would strip from: {full_path}");
-        } else {
-            write_fixed(&full_path, current);
         }
         return;
     }
