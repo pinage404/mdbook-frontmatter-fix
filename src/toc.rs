@@ -59,6 +59,35 @@ pub fn inject_toc(content: &str) -> String {
     format!("{toc_block}{content}")
 }
 
+#[must_use]
+pub fn strip_toc(content: &str) -> String {
+    if !content.contains("## Table of Contents") {
+        return content.to_string();
+    }
+
+    let mut result = Vec::new();
+    let mut in_toc = false;
+
+    for line in content.lines() {
+        if line == "## Table of Contents" {
+            in_toc = true;
+            continue;
+        }
+        if in_toc {
+            // TOC ends at the next ## heading or non-list line after the list
+            if line.starts_with("## ") || line.starts_with("# ") {
+                in_toc = false;
+                result.push(line.to_string());
+            }
+            // skip TOC list lines and blank lines within TOC
+            continue;
+        }
+        result.push(line.to_string());
+    }
+
+    result.join("\n")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
