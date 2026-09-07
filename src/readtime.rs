@@ -10,14 +10,23 @@ pub fn estimate_reading_time(content: &str) -> usize {
 
 #[must_use]
 pub fn inject_reading_time(content: &str) -> String {
-    if content.contains("reading_time:") {
+    if content.contains("⏱") {
         return content.to_string();
     }
 
     let mins = estimate_reading_time(content);
-    let field = format!("reading_time: ~{mins} min read");
+    let badge = format!("> ⏱ ~{mins} min read\n\n");
 
-    content.replacen("\n---", &format!("\n{field}\n---"), 1)
+    if content.starts_with("---") {
+        let inner = content.trim_start_matches("---").trim_start_matches('\n');
+        if let Some(close) = inner.find("\n---") {
+            let after_fm = inner[close + 4..].trim_start_matches('\n');
+            let yaml = &inner[..close];
+            return format!("---\n{yaml}\n---\n\n{badge}{after_fm}");
+        }
+    }
+
+    format!("{badge}{content}")
 }
 
 #[cfg(test)]
