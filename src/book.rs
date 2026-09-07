@@ -70,4 +70,12 @@ mod tests {
         let diags = fm::check_frontmatter(content, &excluded);
         assert!(diags.is_empty());
     }
+
+    #[test]
+    fn parses_custom_inject_fields() {
+        let content = "[inject]\nversion = \"1.0\"\nstatus = \"draft\"\n";
+        let fields = parse_inject_fields(content);
+        assert_eq!(fields.get("version"), Some(&"1.0".to_string()));
+        assert_eq!(fields.get("status"), Some(&"draft".to_string()));
+    }
 }
