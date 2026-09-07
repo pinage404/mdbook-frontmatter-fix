@@ -20,4 +20,11 @@ mod tests {
         let details_pos = result.find("<details>").unwrap();
         assert!(details_pos > content_pos);
     }
+
+    #[test]
+    fn skips_injection_if_comment_block_exists() {
+        let content = "---\ntitle: Hello\n---\n\n# Hello\n\nContent.\n\n<details>\n<summary>Comments</summary>\n\n</details>\n";
+        let result = inject_comment_block(content);
+        assert_eq!(result.matches("<details>").count(), 1);
+    }
 }
