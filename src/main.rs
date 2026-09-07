@@ -99,7 +99,7 @@ fn handle_file_command(cli: &Cli, comment_config: &comment::CommentConfig) {
     }
 
     if cli.strip {
-        let mut current = current.clone();
+        let mut current = current;
         if !cli.toc && !cli.comment {
             current = mdbook_frontmatter_strip::strip_frontmatter(&current);
         }
@@ -172,15 +172,19 @@ fn handle_file_command(cli: &Cli, comment_config: &comment::CommentConfig) {
     }
 }
 
+struct FixOptions<'a> {
+    lang: &'a str,
+    excluded: &'a [String],
+    inject_fields: &'a HashMap<String, String>,
+}
+
 fn apply_fixes(
     cli: &Cli,
     path: &str,
     full_path: &str,
     content: &str,
     diags: &[fm::Diagnostic],
-    lang: &str,
-    excluded: &[String],
-    inject_fields: &HashMap<String, String>,
+    opts: &FixOptions<'_>,
 ) {
     if has_diag(diags, "fm::missing-frontmatter") {
         let abs_path = Path::new(full_path).canonicalize().unwrap();
@@ -192,18 +196,19 @@ fn apply_fixes(
             .split('/')
             .next_back()
             .unwrap_or("untitled");
+
         let fixed = fm::fix_frontmatter(
             content,
             &Frontmatter {
                 title,
                 author: commit.as_ref().map_or("Unknown", |c| c.author.as_str()),
                 date: commit.as_ref().map_or("Unknown", |c| c.date.as_str()),
-                lang: if excluded.contains(&"lang".to_string()) {
+                lang: if opts.excluded.contains(&"lang".to_string()) {
                     ""
                 } else {
-                    lang
+                    opts.lang
                 },
-                tags: if excluded.contains(&"tags".to_string()) {
+                tags: if opts.excluded.contains(&"tags".to_string()) {
                     vec![]
                 } else {
                     tags::infer_tags(path)
@@ -218,7 +223,7 @@ fn apply_fixes(
     }
 
     if has_diag(diags, "fm::missing-lang") {
-        let fixed = fm::fix_missing_lang(content, lang);
+        let fixed = fm::fix_missing_lang(content, opts.lang);
         if cli.dry_run {
             eprintln!("would fix: {full_path}\n{fixed}");
         } else {
@@ -235,7 +240,7 @@ fn apply_fixes(
             write_fixed(full_path, fixed);
         }
     }
-    for (key, value) in inject_fields {
+    for (key, value) in opts.inject_fields {
         if !content.contains(&format!("{key}:")) {
             let fixed = overrides::apply_override(content, key, value);
             if cli.dry_run {
@@ -389,17 +394,14 @@ fn main() {
             total += 1;
         }
 
+        let fix_opts = FixOptions {
+            lang: &lang,
+            excluded: &excluded,
+            inject_fields: &injected_fields,
+        };
+
         if cli.fix || cli.dry_run {
-            apply_fixes(
-                &cli,
-                path,
-                &full_path,
-                &content,
-                &diags,
-                &lang,
-                &excluded,
-                &injected_fields,
-            );
+            apply_fixes(&cli, path, &full_path, &content, &diags, &fix_opts);
         }
     }
 
