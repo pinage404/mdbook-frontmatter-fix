@@ -1,8 +1,8 @@
 use std::{fs, path::Path};
 
 use clap::Parser;
-use mdbook_frontmatter_fix::{book, fm, fm::Frontmatter, git, html, overrides, toc};
-use mdbook_frontmatter_fix::{summary, tags};
+use mdbook_frontmatter_fix::fm::Frontmatter;
+use mdbook_frontmatter_fix::{book, comment, fm, git, html, overrides, summary, tags, toc};
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Parser)]
@@ -48,6 +48,9 @@ struct Cli {
 
     #[arg(long)]
     toc: bool,
+
+    #[arg(long)]
+    comment: bool,
 }
 
 fn read_or_exit(path: &str) -> String {
@@ -82,6 +85,16 @@ fn handle_file_command(cli: &Cli) {
         let result = toc::inject_toc(&current);
         if cli.dry_run {
             eprintln!("would inject TOC into: {full_path}\n{result}");
+        } else {
+            write_fixed(&full_path, result);
+        }
+        return;
+    }
+
+    if cli.comment {
+        let result = comment::inject_comment_block(&current);
+        if cli.dry_run {
+            eprintln!("would inject comment block into: {full_path}");
         } else {
             write_fixed(&full_path, result);
         }
@@ -251,6 +264,24 @@ fn main() {
         }
         return;
     }
+
+    if cli.comment {
+        for path in &paths {
+            let full_path = format!("src/{path}");
+            let Ok(content) = fs::read_to_string(&full_path) else {
+                eprintln!("error: could not read {full_path}");
+                continue;
+            };
+            let result = comment::inject_comment_block(&content);
+            if cli.dry_run {
+                eprintln!("would inject comment block into: {full_path}");
+            } else {
+                write_fixed(&full_path, result);
+            }
+        }
+        return;
+    }
+
     let run_fm = cli.fm || !cli.html && !cli.links;
     let run_html = cli.html || !cli.fm && !cli.links;
     let run_links = cli.links || !cli.fm && !cli.html;
