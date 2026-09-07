@@ -98,6 +98,7 @@ pub fn check_links(content: &str, file_dir: &Path) -> Vec<Diagnostic> {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
 

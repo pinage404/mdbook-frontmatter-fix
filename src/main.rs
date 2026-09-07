@@ -173,7 +173,9 @@ fn apply_fixes(
     opts: &FixOptions<'_>,
 ) {
     let mut current = if has_diag(diags, "fm::missing-frontmatter") {
-        let abs_path = Path::new(full_path).canonicalize().unwrap();
+        let abs_path = Path::new(full_path)
+            .canonicalize()
+            .unwrap_or_else(|_| Path::new(full_path).to_path_buf());
         let commit = git::file_commit_info(&abs_path, "%Y-%m-%d", false)
             .ok()
             .flatten();

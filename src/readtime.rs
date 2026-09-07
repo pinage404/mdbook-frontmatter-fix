@@ -30,6 +30,7 @@ pub fn inject_reading_time(content: &str) -> String {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
 

@@ -142,6 +142,7 @@ pub fn replace_frontmatter(content: &str, new_fm: &str) -> String {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
     use crate::tags::infer_tags;

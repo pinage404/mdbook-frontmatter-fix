@@ -116,6 +116,7 @@ pub fn strip_comment_block(content: &str) -> String {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
 

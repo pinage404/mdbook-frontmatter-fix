@@ -23,7 +23,7 @@ pub struct RunOptions<'a> {
 pub fn run_on_chapter(
     path: &str,
     content: &str,
-    opts: &RunOptions,
+    opts: &RunOptions<'_>,
 ) -> (Vec<fm::Diagnostic>, Option<String>) {
     let mut diags = Vec::new();
     if opts.run_fm {
@@ -58,6 +58,7 @@ pub fn run_on_chapter(
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
     #[test]
