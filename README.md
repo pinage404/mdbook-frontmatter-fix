@@ -1,8 +1,8 @@
 # mdbook-frontmatter-fix
 
-A linter and fixer for [mdBook](https://rust-lang.github.io/mdBook/) projects.
-Validates frontmatter fields and HTML structure across every chapter, with
-clippy-style diagnostics and an optional `--fix` flag that writes what it can
+A Swiss Army knife for [mdBook](https://rust-lang.github.io/mdBook/) projects.
+Validates frontmatter, HTML structure, and broken links with clippy-style
+diagnostics. Injects, fixes, or strips content across every chapter
 automatically.
 
 ```
@@ -13,6 +13,11 @@ warning[html::unclosed-details]: unclosed <details> block
 
 fmv: 2 issue(s) found
 ```
+
+
+Auto-inject frontmatter from git history, generate tables of contents, add
+collapsible Giscus comment widgets, override individual fields, and edit
+frontmatter in your `$EDITOR`, all from a single CLI tool.
 
 ## Installation
 
@@ -89,6 +94,8 @@ tags:
 Chapters that already have frontmatter are left untouched. HTML issues are
 reported but not auto-fixed, the correct insertion point is ambiguous.
 
+---
+
 ## Dry run
 
 Preview what `--fix` would write without touching any files:
@@ -109,6 +116,8 @@ tags:
 ---
 ...
 ```
+
+---
 
 ## Field overrides
 
@@ -136,6 +145,8 @@ Combine with `--dry-run` to preview before writing:
 fmf --set "title=My Title" io/input_output.md --dry-run
 ```
 
+---
+
 ## Edit frontmatter
 
 Open a chapter's frontmatter in `$EDITOR` for quick editing:
@@ -144,8 +155,10 @@ Open a chapter's frontmatter in `$EDITOR` for quick editing:
 fmf --edit io/input_output.md
 ```
 
-Only the frontmatter block is shown, the chapter content stays out of view.
-Uses `$EDITOR` with a fallback to `vi`.
+Only the frontmatter block is shown, the chapter content stays out of view. Uses
+`$EDITOR` with a fallback to `vi`.
+
+---
 
 ## Table of contents
 
@@ -171,23 +184,80 @@ flat with no indent:
 - [Further Reading](#further-reading)
 ```
 
-Running `--toc` on a chapter that already has a `## Table of Contents` block
-is a no-op, it won't add a second one.
+Running `--toc` on a chapter that already has a `## Table of Contents` block is
+a no-op, it won't add a second one.
+
+---
 
 ## Strip frontmatter
 
 Remove frontmatter from all chapters or a single file:
 
 ```sh
-fmf --strip                        # strip all chapters
-fmf --strip io/input_output.md     # strip one file
-fmf --strip --dry-run              # preview without writing
+fmf --strip                          # strip frontmatter from all chapters
+fmf --strip io/input_output.md       # strip frontmatter from one file
+fmf --strip --toc                    # strip TOC blocks from all chapters
+fmf --strip --comment                # strip comment blocks from all chapters
+fmf --strip --toc --comment          # strip both TOC and comment blocks
+fmf --strip --dry-run                # preview without writing
 ```
 
-Useful for cleaning up before publishing or removing frontmatter you no longer
-need. Uses
+`--strip` alone removes frontmatter. Combined with `--toc` or `--comment` it
+targets those blocks instead and the frontmatter is left untouched.
+
+Useful for cleaning up before publishing or removing frontmatter, TOC's, and
+comment blocks you no longer need. Uses
 [mdbook-frontmatter-strip](https://crates.io/crates/mdbook-frontmatter-strip)
 under the hood.
+
+---
+
+## Comments
+
+Inject a collapsible Q&A/comments block at the bottom of chapters:
+
+```sh
+fmf --comment                        # inject into all chapters
+fmf --comment io/input_output.md     # inject into one chapter
+fmf --comment --dry-run              # preview without writing
+```
+
+By default injects a plain `<details>` block:
+
+```html
+<details>
+  <summary>Comments</summary>
+
+  <!-- Add your questions or comments below -->
+</details>
+```
+
+### Giscus integration
+
+For a live comment system backed by GitHub Discussions, configure Giscus in
+`fmf.toml`:
+
+```toml
+comment_style = "giscus"
+giscus_repo = "yourname/your-repo"
+giscus_repo_id = "R_kgDO..."        # from giscus.app
+giscus_category = "Q&A"
+giscus_category_id = "DIC_kwDO..."  # from giscus.app
+```
+
+Get your `giscus_repo_id` and `giscus_category_id` from
+[giscus.app](https://giscus.app) — enter your repo, enable GitHub Discussions,
+and copy the generated values. The README is skipped automatically since it
+serves as a landing page rather than a chapter.
+
+To remove comment blocks:
+
+```sh
+fmf --strip --comment                # all chapters
+fmf --strip --comment io/input_output.md  # one file
+```
+
+---
 
 ## Configuration
 
