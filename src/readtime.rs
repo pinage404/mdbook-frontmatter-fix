@@ -1,3 +1,12 @@
+/// Average adult reading speed in words per minute.
+const WPM: usize = 200;
+
+pub fn estimate_reading_time(content: &str) -> usize {
+    let words = content.split_whitespace().count();
+    let mins = (words + WPM - 1) / WPM;
+    mins.max(1) // minimum 1 minute
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
