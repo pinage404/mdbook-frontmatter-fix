@@ -30,7 +30,7 @@ pub fn fix_frontmatter(content: &str, fm: &Frontmatter<'_>) -> String {
         let _ = writeln!(block, "lang: {}", fm.lang);
     }
     if !fm.tags.is_empty() {
-        block.push_str("tags:");
+        block.push_str("tags:\n");
 
         for tag in &fm.tags {
             let _ = writeln!(block, "  - {tag}");
