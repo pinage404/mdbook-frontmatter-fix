@@ -364,7 +364,7 @@ fn main() {
     let cli = Cli::parse();
 
     if !Path::new("book.toml").exists() {
-        eprintln!("error: no book.toml found. Run mf from your book root");
+        eprintln!("error: no book.toml found. Run fmf from your book root");
         process::exit(1);
     }
 
