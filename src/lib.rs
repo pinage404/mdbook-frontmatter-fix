@@ -5,6 +5,7 @@ pub mod fm;
 pub mod git;
 pub mod html;
 pub mod overrides;
+pub mod readtime;
 pub mod summary;
 pub mod tags;
 pub mod toc;
