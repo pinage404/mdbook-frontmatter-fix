@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::{fs, path::Path};
 
 use clap::Parser;
@@ -179,6 +180,7 @@ fn apply_fixes(
     diags: &[fm::Diagnostic],
     lang: &str,
     excluded: &[String],
+    inject_fields: &HashMap<String, String>,
 ) {
     if has_diag(diags, "fm::missing-frontmatter") {
         let abs_path = Path::new(full_path).canonicalize().unwrap();
@@ -233,6 +235,16 @@ fn apply_fixes(
             write_fixed(full_path, fixed);
         }
     }
+    for (key, value) in inject_fields {
+        if !content.contains(&format!("{key}:")) {
+            let fixed = overrides::apply_override(content, key, value);
+            if cli.dry_run {
+                eprintln!("would inject {key}: {value} into {full_path}");
+            } else {
+                write_fixed(full_path, fixed);
+            }
+        }
+    }
 }
 
 fn main() {
@@ -250,6 +262,7 @@ fn main() {
     } else {
         String::new()
     };
+    let injected_fields = book::parse_inject_fields(&fmf_content);
     let excluded = book::parse_excluded_fields(&fmf_content);
     let comment_config = comment::parse_comment_config(&fmf_content);
 
@@ -377,7 +390,16 @@ fn main() {
         }
 
         if cli.fix || cli.dry_run {
-            apply_fixes(&cli, path, &full_path, &content, &diags, &lang, &excluded);
+            apply_fixes(
+                &cli,
+                path,
+                &full_path,
+                &content,
+                &diags,
+                &lang,
+                &excluded,
+                &injected_fields,
+            );
         }
     }
 
