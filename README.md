@@ -14,9 +14,16 @@ warning[html::unclosed-details]: unclosed <details> block
 fmv: 2 issue(s) found
 ```
 
-Auto-inject frontmatter from git history, generate tables of contents, add
-collapsible Giscus comment widgets, override individual fields, add estimated
-readtimes, and edit frontmatter in your `$EDITOR`, all from a single CLI tool.
+## Features
+
+- **Validate**: clippy-style diagnostics for frontmatter fields, HTML structure, and broken links
+- **Fix**: auto-inject frontmatter from git history and `book.toml` with a single command
+- **Inject**: tables of contents, reading time badges, and collapsible Giscus comment widgets
+- **Override**: set or edit individual frontmatter fields per chapter
+- **Strip**: remove frontmatter, TOC blocks, or comment blocks from any chapter
+- **Configure**: exclude fields, inject custom fields, and set Giscus config via `fmf.toml`
+
+---
 
 ## Installation
 
@@ -46,6 +53,8 @@ fmf --toc                                    # generate toc for all chapters
 
 Exit code is `0` when clean, `1` when issues are found, CI friendly.
 
+---
+
 ## Checks
 
 ### Frontmatter (`--fm`)
@@ -73,6 +82,8 @@ Exit code is `0` when clean, `1` when issues are found, CI friendly.
 | ---------------------- | --------------------------------------- |
 | `html::broken-include` | `{{#include path}}` file doesn't exist  |
 | `html::broken-link`    | Internal markdown link target not found |
+
+---
 
 ## Auto-fix
 
@@ -268,18 +279,15 @@ fmf --readtime io/input_output.md   # inject into one chapter
 fmf --readtime --dry-run             # preview without writing
 ```
 
-Adds a `reading_time` field based on word count at 200 words per minute:
+Injects a visible badge after the frontmatter block:
 
-```yaml
----
-title: Input and Output
-author: Jr
-date: 2026-09-03
-reading_time: ~7 min read
----
+```md
+> ⏱ ~7 min read
 ```
 
-Chapters that already have a `reading_time` field are left untouched.
+The badge appears above the table of contents if one is present, and remains
+visible after `mdbook-frontmatter-strip` removes the frontmatter block. Chapters
+that already have a ⏱ badge are left untouched.
 
 ---
 
