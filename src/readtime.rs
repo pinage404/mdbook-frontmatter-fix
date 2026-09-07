@@ -7,6 +7,17 @@ pub fn estimate_reading_time(content: &str) -> usize {
     mins.max(1) // minimum 1 minute
 }
 
+pub fn inject_reading_time(content: &str) -> String {
+    if content.contains("reading_time:") {
+        return content.to_string();
+    }
+
+    let mins = estimate_reading_time(content);
+    let field = format!("reading_time: ~{mins} min read");
+
+    content.replacen("\n---", &format!("\n{field}\n---"), 1)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
