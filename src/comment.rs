@@ -84,6 +84,38 @@ pub fn parse_comment_config(content: &str) -> CommentConfig {
         style: CommentStyle::Plain,
     }
 }
+
+#[must_use]
+pub fn strip_comment_block(content: &str) -> String {
+    if !content.contains("<summary>Comments</summary>") {
+        return content.to_string();
+    }
+
+    let mut result = Vec::new();
+    let mut in_block = false;
+
+    for line in content.lines() {
+        if line == "<details>" {
+            // peek ahead — only skip if this is a comments block
+            in_block = true;
+            continue;
+        }
+        if in_block && line == "<summary>Comments</summary>" {
+            continue;
+        }
+        if in_block && line == "</details>" {
+            in_block = false;
+            continue;
+        }
+        if in_block {
+            continue;
+        }
+        result.push(line.to_string());
+    }
+
+    result.join("\n")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
