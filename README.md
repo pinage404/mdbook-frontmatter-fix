@@ -28,7 +28,7 @@ fmv: 2 issue(s) found
 ## Installation
 
 ```sh
-cargo install mdbook-fmv
+cargo install mdbook-frontmatter-fix
 ```
 
 Run from your book root (where `book.toml` lives).
