@@ -6,6 +6,9 @@ pub enum CommentStyle {
         category: String,
         category_id: String,
     },
+    Bluesky {
+        handle: String,
+    },
 }
 
 pub struct CommentConfig {
@@ -37,6 +40,13 @@ pub fn inject_comment_block_with_config(content: &str, config: &CommentConfig) -
     crossorigin="anonymous"
     async>
 </script>
+"#
+            )
+        }
+        CommentStyle::Bluesky { handle } => {
+            format!(
+                r#"<script src="https://unpkg.com/bluesky-comments@0.8.0/dist/bluesky-comments.js" type="module"></script>
+<bluesky-comments handle="{handle}"></bluesky-comments>
 "#
             )
         }
@@ -75,6 +85,13 @@ pub fn parse_comment_config(content: &str) -> CommentConfig {
                 repo_id: get("giscus_repo_id"),
                 category: get("giscus_category"),
                 category_id: get("giscus_category_id"),
+            },
+        };
+    }
+    if style == "bluesky" {
+        return CommentConfig {
+            style: CommentStyle::Bluesky {
+                handle: get("bluesky_handle"),
             },
         };
     }
@@ -166,7 +183,7 @@ mod tests {
                 assert_eq!(repo, "saylesss88/rust-gaps");
                 assert_eq!(repo_id, "R_kgDO123");
             }
-            CommentStyle::Plain => panic!("expected Giscus style"),
+            CommentStyle::Bluesky { .. } | CommentStyle::Plain => panic!("expected Giscus style"),
         }
     }
 
@@ -177,5 +194,19 @@ mod tests {
         assert!(!result.contains("<details>"));
         assert!(!result.contains("<summary>Comments</summary>"));
         assert!(result.contains("Content."));
+    }
+
+    #[test]
+    fn generates_bluesky_comment_block() {
+        let config = CommentConfig {
+            style: CommentStyle::Bluesky {
+                handle: "saylesss88.bsky.social".to_string(),
+            },
+        };
+        let content = "---\ntitle: Hello\n---\n\n# Hello\n\nContent.\n";
+        let result = inject_comment_block_with_config(content, &config);
+        assert!(result.contains("bluesky-comments"));
+        assert!(result.contains("saylesss88.bsky.social"));
+        assert!(result.contains("<details>"));
     }
 }
