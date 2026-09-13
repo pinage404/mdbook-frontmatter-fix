@@ -242,7 +242,7 @@ By default injects a plain `<details>` block:
 </details>
 ```
 
-### Giscus integration
+### Giscus Integration
 
 For a live comment system backed by GitHub Discussions, configure Giscus in
 `fmf.toml`:
@@ -266,6 +266,20 @@ To remove comment blocks:
 fmf --strip --comment                # all chapters
 fmf --strip --comment io/input_output.md  # one file
 ```
+
+---
+
+### Bluesky Integration
+
+For comments backed by Bluesky replies, configure in `fmf.toml`:
+
+```toml
+comment_style = "bluesky"
+bluesky_handle = "yourhandle.bsky.social"
+```
+
+Uses the [bluesky-comments](https://github.com/nicholasstephan/bluesky-comments)
+web component to display replies to your Bluesky posts as chapter comments.
 
 ---
 
@@ -298,7 +312,26 @@ injects:
 
 ```toml
 # fmf.toml
+
+# Skip validation and injection of specific frontmatter fields
 exclude_fields = ["lang", "tags"]
+
+# Inject custom fields into every chapter's frontmatter via --fix
+[inject]
+status = "draft"
+feed = "exclude"
+license = "MIT"
+
+# Comment style: "plain" (default), "giscus", or "bluesky"
+comment_style = "giscus"
+giscus_repo = "yourname/your-repo"
+giscus_repo_id = "R_kgDO..."
+giscus_category = "Q&A"
+giscus_category_id = "DIC_kwDO..."
+
+# Or for Bluesky:
+# comment_style = "bluesky"
+# bluesky_handle = "yourhandle.bsky.social"
 ```
 
 Excluded fields are skipped during validation and not injected by `--fix`.
@@ -307,7 +340,7 @@ multilingual support (skip `lang`).
 
 All fields are required by default when no `fmf.toml` is present.
 
-### Custom field injection
+### Custom Field Injection
 
 Any fields under `[inject]` in `fmf.toml` are automatically added to every
 chapter's frontmatter when running `--fix`:
@@ -367,4 +400,4 @@ fmf || exit 1
 
 ## License
 
-Apache-2.0
+[Apache-2.0](https://github.com/saylesss88/mdbook-frontmatter-fix/blob/main/LICENSE)
